@@ -3,7 +3,6 @@ import { Badge } from "@/components/ui/badge";
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { InfoIcon } from "lucide-react";
@@ -21,31 +20,29 @@ export const PeriodToggle = ({ selectedPeriod, onToggle }: PeriodToggleProps) =>
       transition={{ duration: 0.3 }}
       className="flex items-center gap-3 mb-6"
     >
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-muted-foreground">
-                Time Period:
-              </span>
-              <InfoIcon className="w-4 h-4 text-muted-foreground hover:text-foreground transition-colors cursor-help" />
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="flex items-center gap-2 cursor-help">
+            <span className="text-sm font-medium text-muted-foreground">
+              Time Period:
+            </span>
+            <InfoIcon className="w-4 h-4 text-muted-foreground hover:text-foreground transition-colors" />
+          </div>
+        </TooltipTrigger>
+        <TooltipContent side="bottom" className="w-56">
+          <div className="space-y-2 text-xs">
+            <p className="font-semibold">Performance Period Selection</p>
+            <div>
+              <p className="font-medium text-accent">QTD (Quarter-To-Date)</p>
+              <p>Performance from 1 April – 20 April 2026 (current quarter)</p>
             </div>
-          </TooltipTrigger>
-          <TooltipContent side="bottom" className="w-56">
-            <div className="space-y-2 text-xs">
-              <p className="font-semibold">Performance Period Selection</p>
-              <div>
-                <p className="font-medium text-accent">QTD (Quarter-To-Date)</p>
-                <p>Performance from 1 April – 20 April 2026 (current quarter)</p>
-              </div>
-              <div>
-                <p className="font-medium text-accent">YTD (Year-To-Date)</p>
-                <p>Performance from 1 January – 20 April 2026 (entire year)</p>
-              </div>
+            <div>
+              <p className="font-medium text-accent">YTD (Year-To-Date)</p>
+              <p>Performance from 1 January – 20 April 2026 (entire year)</p>
             </div>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+          </div>
+        </TooltipContent>
+      </Tooltip>
 
       <div className="flex items-center gap-2 bg-secondary rounded-lg p-1 border border-border">
         <button
