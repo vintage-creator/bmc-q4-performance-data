@@ -82,7 +82,7 @@ const Index = () => {
         <div className="mb-8">
           <div className="text-center mb-6">
             <p className="text-muted-foreground mt-2">
-              Personalized Performance Simulation Report — Mr. Farouk Bernaoui
+              Personalised Performance Simulation Report — Mr. Farouk Bernaoui
             </p>
           </div>
           <PeriodToggle selectedPeriod={selectedPeriod} onToggle={setSelectedPeriod} />
