@@ -10,6 +10,7 @@ import {
   Lock,
   LineChart,
   Gauge,
+  Shield,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { MetricCard } from "@/components/TradingDashboard/MetricCard";
@@ -82,7 +83,7 @@ const Index = () => {
         <div className="mb-8">
           <div className="text-center mb-6">
             <p className="text-muted-foreground mt-2">
-              Personalised Performance Simulation Report — Mr. Farouk Bernaoui
+              Personalised Performance Simulation Report — <span className="font-bold text-foreground">Mr. Farouk Bernaoui</span>
             </p>
           </div>
           <PeriodToggle selectedPeriod={selectedPeriod} onToggle={setSelectedPeriod} />
@@ -114,7 +115,13 @@ const Index = () => {
         </div>
 
         {/* Key Performance Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="mb-2">
+          <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-primary" />
+            Performance Summary
+          </h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
           <MetricCard
             title="Total Net Profit"
             value={`$${performanceMetrics.totalNetProfit.toLocaleString()}`}
@@ -127,7 +134,7 @@ const Index = () => {
           <MetricCard
             title="Sharpe Ratio"
             value={performanceMetrics.sharpeRatioAnnualized.toFixed(2)}
-            subtitle="Annualized (Monthly: 0.58)"
+            subtitle="Annualised (Monthly: 0.58)"
             icon={Gauge}
             trend="up"
             tooltip="Risk-adjusted return measure. Above 2.0 is considered excellent. Calculated against 4% US T-Bill risk-free rate."
@@ -153,33 +160,65 @@ const Index = () => {
           />
         </div>
 
+        {/* Charts Section */}
+        <div className="mb-2 mt-8">
+          <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+            <LineChart className="w-5 h-5 text-primary" />
+            Performance Analysis
+          </h2>
+        </div>
+
         {/* Performance Chart */}
         <div className="mb-8">
           <PerformanceChart />
         </div>
 
         {/* ROI Chart */}
-        <div className="mb-8">
+        <div className="mb-10">
           <ROIChart />
         </div>
 
         {/* Trade Distribution Charts */}
-        <div className="mb-8">
+        <div className="mb-2">
+          <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+            <BarChart3 className="w-5 h-5 text-primary" />
+            Trade Metrics
+          </h2>
+        </div>
+        <div className="mb-10">
           <TradeDistribution />
         </div>
 
-        {/* Risk Metrics Gauge */}
-        <div className="mb-8">
+        {/* Risk Metrics Section */}
+        <div className="mb-2">
+          <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+            <Shield className="w-5 h-5 text-primary" />
+            Risk Assessment
+          </h2>
+        </div>
+        <div className="mb-10">
           <RiskMetricsGauge />
         </div>
 
         {/* Benchmark Comparison */}
-        <div className="mb-8">
+        <div className="mb-2">
+          <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+            <Activity className="w-5 h-5 text-primary" />
+            Benchmark Comparison
+          </h2>
+        </div>
+        <div className="mb-10">
           <BenchmarkComparison />
         </div>
 
         {/* Risk & Trading Metrics Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="mb-2">
+          <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+            <Gauge className="w-5 h-5 text-primary" />
+            Detailed Metrics
+          </h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
           <MetricCard
             title="Profit Factor"
             value={performanceMetrics.profitFactor.toFixed(2)}
@@ -219,7 +258,7 @@ const Index = () => {
         </div>
 
         {/* Additional Metrics Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
           <MetricCard
             title="High-Water Mark"
             value={`$${performanceMetrics.highWaterMark.toLocaleString()}`}
@@ -270,7 +309,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="border-t border-border mt-16 py-8">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>© 2025 Blue Marvel Capital. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Blue Marvel Capital. All rights reserved.</p>
         </div>
       </footer>
     </div>

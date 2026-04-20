@@ -7,7 +7,7 @@ const insights = [
   {
     icon: Gauge,
     title: "Strong Sharpe Ratio",
-    description: `Annualized Sharpe Ratio of ${performanceMetrics.sharpeRatioAnnualized} indicates excellent risk-adjusted returns. Above 2.0 is considered exceptional in the industry.`,
+    description: `Annualised Sharpe Ratio of ${performanceMetrics.sharpeRatioAnnualized} indicates excellent risk-adjusted returns. Above 2.0 is considered exceptional in the industry.`,
     type: "success",
   },
   {

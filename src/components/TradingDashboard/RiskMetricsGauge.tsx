@@ -115,7 +115,7 @@ export const RiskMetricsGauge = () => {
               <CircularGauge
                 value={performanceMetrics.sharpeRatioAnnualized}
                 max={4}
-                label="Annualized Sharpe"
+                label="Annualised Sharpe"
                 color="hsl(var(--success))"
                 description="Excellent (>2.0 is outstanding)"
               />
