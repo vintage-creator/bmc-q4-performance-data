@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   AlertCircle,
@@ -19,11 +20,17 @@ import { TradeHistory } from "@/components/TradingDashboard/TradeHistory";
 import { RiskMetricsGauge } from "@/components/TradingDashboard/RiskMetricsGauge";
 import { BenchmarkComparison } from "@/components/TradingDashboard/BenchmarkComparison";
 import { InsightsTips } from "@/components/TradingDashboard/InsightsTips";
-import { performanceMetrics, tradeStatistics } from "@/data/tradingData";
+import { PeriodToggle } from "@/components/TradingDashboard/PeriodToggle";
+import { performanceMetricsQTD, performanceMetricsYTD, tradeStatisticsQTD, tradeStatisticsYTD } from "@/data/tradingData";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 const Index = () => {
+  const [selectedPeriod, setSelectedPeriod] = useState<"QTD" | "YTD">("QTD");
+  
+  // Select metrics based on period
+  const performanceMetrics = selectedPeriod === "QTD" ? performanceMetricsQTD : performanceMetricsYTD;
+  const tradeStatistics = selectedPeriod === "QTD" ? tradeStatisticsQTD : tradeStatisticsYTD;
   const recipient = "";
 
   const clientSharePercent = 0.6;
@@ -72,10 +79,13 @@ const Index = () => {
         </Alert>
 
         {/* Heading */}
-        <div className="mb-8 text-center">
-          <p className="text-muted-foreground mt-2">
-            Personalized Performance Simulation Report — Q4/2025
-          </p>
+        <div className="mb-8">
+          <div className="text-center mb-6">
+            <p className="text-muted-foreground mt-2">
+              Personalized Performance Simulation Report — Mr. Farouk Bernaoui
+            </p>
+          </div>
+          <PeriodToggle selectedPeriod={selectedPeriod} onToggle={setSelectedPeriod} />
         </div>
 
         {/* Capital Overview - Top Row */}
@@ -108,10 +118,10 @@ const Index = () => {
           <MetricCard
             title="Total Net Profit"
             value={`$${performanceMetrics.totalNetProfit.toLocaleString()}`}
-            subtitle="Q4/2025"
+            subtitle={selectedPeriod === "QTD" ? "1–20 Apr 2026" : "1 Jan–20 Apr 2026"}
             icon={DollarSign}
             trend="up"
-            tooltip="Total profit after all commissions and fees for Q4/2025."
+            tooltip={`Total profit after all commissions and fees for ${selectedPeriod}.`}
             delay={0.3}
           />
           <MetricCard
@@ -240,7 +250,7 @@ const Index = () => {
           <MetricCard
             title="Total Trades"
             value={tradeStatistics.totalTrades}
-            subtitle="Q4/2025 Activity"
+            subtitle={`${selectedPeriod} Activity`}
             icon={BarChart3}
             trend="neutral"
             tooltip="Total number of closed positions for the period."
@@ -254,7 +264,7 @@ const Index = () => {
         </div>
 
         {/* Trade History Table */}
-        <TradeHistory />
+        <TradeHistory period={selectedPeriod} />
       </main>
 
       {/* Footer */}

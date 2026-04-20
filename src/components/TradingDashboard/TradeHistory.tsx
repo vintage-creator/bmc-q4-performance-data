@@ -8,12 +8,35 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { trades, Trade } from "@/data/tradingData";
 import { Search, TrendingUp, TrendingDown } from "lucide-react";
 
-export const TradeHistory = () => {
+interface TradeHistoryProps {
+  period?: "QTD" | "YTD";
+}
+
+export const TradeHistory = ({ period = "QTD" }: TradeHistoryProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<"all" | "buy" | "sell">("all");
   const [filterProfit, setFilterProfit] = useState<"all" | "profit" | "loss">("all");
 
-  const filteredTrades = trades.filter((trade) => {
+  // Filter trades by period
+  const filterTradesByPeriod = (allTrades: Trade[]) => {
+    if (period === "QTD") {
+      // QTD: 1–20 Apr 2026
+      return allTrades.filter((trade) => {
+        const closeTime = new Date(trade.closeTime.replace(/\./g, "-"));
+        return closeTime >= new Date("2026-04-01") && closeTime <= new Date("2026-04-20");
+      });
+    } else {
+      // YTD: 1 Jan – 20 Apr 2026
+      return allTrades.filter((trade) => {
+        const closeTime = new Date(trade.closeTime.replace(/\./g, "-"));
+        return closeTime >= new Date("2026-01-01") && closeTime <= new Date("2026-04-20");
+      });
+    }
+  };
+
+  const periodFilteredTrades = filterTradesByPeriod(trades);
+
+  const filteredTrades = periodFilteredTrades.filter((trade) => {
     const matchesSearch = 
       trade.ticket.toLowerCase().includes(searchTerm.toLowerCase()) ||
       trade.item.toLowerCase().includes(searchTerm.toLowerCase());
@@ -121,7 +144,7 @@ export const TradeHistory = () => {
         </div>
 
         <div className="mt-4 text-sm text-muted-foreground">
-          Showing {filteredTrades.length} of {trades.length} trades
+          Showing {filteredTrades.length} of {periodFilteredTrades.length} trades ({period})
         </div>
       </Card>
     </motion.div>

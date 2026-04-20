@@ -12,90 +12,136 @@ export interface Trade {
 }
 
 export const trades: Trade[] = [
-  { ticket: "12221195", openTime: "2025.10.20 16:56:24", type: "sell", size: 1.00, item: "uscocoaz5", openPrice: 5890.5, closeTime: "2025.11.12 16:22:34", closePrice: 5762.5, profit: 128.00, commission: -10.00 },
-  { ticket: "12238206", openTime: "2025.10.21 16:29:49", type: "sell", size: 1.00, item: "uscocoaz5", openPrice: 5965.0, closeTime: "2025.11.12 16:26:01", closePrice: 5751.0, profit: 214.00, commission: -10.00 },
-  { ticket: "12254738", openTime: "2025.10.22 14:55:18", type: "sell", size: 1.00, item: "uscocoaz5", openPrice: 6218.5, closeTime: "2025.11.03 16:11:00", closePrice: 6357.0, profit: -138.50, commission: -10.00 },
-  { ticket: "12256775", openTime: "2025.10.22 16:57:49", type: "buy", size: 0.01, item: "eurjpy.sd", openPrice: 176.232, closeTime: "2025.11.18 18:27:58", closePrice: 179.948, profit: 23.90, commission: 0.00 },
-  { ticket: "12258067", openTime: "2025.10.27 13:25:03", type: "sell", size: 1.00, item: "uscocoaz5", openPrice: 6151.0, closeTime: "2025.11.03 17:03:04", closePrice: 6449.5, profit: -298.50, commission: -10.00 },
-  { ticket: "12269295", openTime: "2025.10.27 13:37:26", type: "sell", size: 1.00, item: "uscocoaz5", openPrice: 6100.5, closeTime: "2025.11.12 16:25:42", closePrice: 5750.5, profit: 350.00, commission: -10.00 },
-  { ticket: "12296259", openTime: "2025.10.27 13:47:31", type: "buy", size: 0.10, item: "eurjpy.sd", openPrice: 177.872, closeTime: "2025.11.18 18:27:53", closePrice: 179.950, profit: 133.67, commission: 0.00 },
-  { ticket: "12296745", openTime: "2025.10.27 14:24:36", type: "buy", size: 0.10, item: "eurjpy.sd", openPrice: 177.742, closeTime: "2025.11.18 18:27:49", closePrice: 179.955, profit: 142.36, commission: 0.00 },
-  { ticket: "12298113", openTime: "2025.10.27 15:51:29", type: "buy", size: 0.20, item: "eurjpy.sd", openPrice: 177.894, closeTime: "2025.11.03 17:22:08", closePrice: 177.414, profit: -3.04, commission: 0.00 },
-  { ticket: "12344956", openTime: "2025.10.29 21:01:58", type: "buy", size: 0.10, item: "eurjpy.sd", openPrice: 177.394, closeTime: "2025.11.03 14:54:15", closePrice: 177.576, profit: 11.81, commission: 0.00 },
-  { ticket: "12347055", openTime: "2025.10.30 06:18:49", type: "buy", size: 0.10, item: "eurjpy.sd", openPrice: 177.521, closeTime: "2025.11.03 14:55:15", closePrice: 177.585, profit: 4.16, commission: 0.00 },
-  { ticket: "12359263", openTime: "2025.10.30 13:03:31", type: "buy", size: 0.10, item: "eurjpy.sd", openPrice: 178.712, closeTime: "2025.11.03 18:14:44", closePrice: 177.610, profit: -71.51, commission: 0.00 },
-  { ticket: "12344420", openTime: "2025.10.30 15:21:59", type: "sell", size: 2.00, item: "uscocoaz5", openPrice: 5937.0, closeTime: "2025.11.12 16:25:19", closePrice: 5754.5, profit: 365.00, commission: -20.00 },
-  { ticket: "12373548", openTime: "2025.10.31 17:16:43", type: "sell", size: 1.00, item: "uscocoaz5", openPrice: 6189.0, closeTime: "2025.11.03 16:36:49", closePrice: 6390.0, profit: -201.00, commission: -10.00 },
-  { ticket: "12373650", openTime: "2025.10.31 17:38:10", type: "sell", size: 1.00, item: "uscocoaz5", openPrice: 6151.0, closeTime: "2025.11.03 16:52:41", closePrice: 6411.0, profit: -260.00, commission: -10.00 },
-  { ticket: "12389786", openTime: "2025.11.06 11:45:00", type: "sell", size: 1.00, item: "uscocoaz5", openPrice: 6252.5, closeTime: "2025.11.12 16:24:26", closePrice: 5757.5, profit: 495.00, commission: -10.00 },
-  { ticket: "12398518", openTime: "2025.11.06 11:45:00", type: "sell", size: 1.00, item: "uscocoaz5", openPrice: 6252.5, closeTime: "2025.11.12 16:24:20", closePrice: 5757.5, profit: 495.00, commission: -10.00 },
-  { ticket: "12386861", openTime: "2025.11.06 11:46:34", type: "sell", size: 1.00, item: "uscocoaz5", openPrice: 6244.5, closeTime: "2025.11.12 16:25:01", closePrice: 5757.5, profit: 487.00, commission: -10.00 },
-  { ticket: "12426744", openTime: "2025.11.06 15:44:54", type: "sell", size: 1.00, item: "uscocoaz5", openPrice: 6211.5, closeTime: "2025.11.12 16:24:10", closePrice: 5758.0, profit: 453.50, commission: -10.00 },
-  { ticket: "12388377", openTime: "2025.11.07 11:59:26", type: "sell", size: 1.00, item: "uscocoaz5", openPrice: 6100.5, closeTime: "2025.11.12 16:24:55", closePrice: 5757.5, profit: 343.00, commission: -10.00 },
-  { ticket: "12429179", openTime: "2025.11.07 18:35:59", type: "sell", size: 1.00, item: "uscocoaz5", openPrice: 6012.5, closeTime: "2025.11.12 16:24:04", closePrice: 5758.0, profit: 254.50, commission: -10.00 },
-  { ticket: "12388462", openTime: "2025.11.10 15:21:09", type: "sell", size: 1.00, item: "uscocoaz5", openPrice: 5962.0, closeTime: "2025.11.12 16:24:41", closePrice: 5757.0, profit: 205.00, commission: -10.00 },
-  { ticket: "12470745", openTime: "2025.11.10 16:18:11", type: "sell", size: 1.00, item: "uscocoaz5", openPrice: 5934.0, closeTime: "2025.11.12 16:25:27", closePrice: 5754.0, profit: 180.00, commission: -10.00 },
-  { ticket: "12471925", openTime: "2025.11.11 17:01:28", type: "sell", size: 2.00, item: "uscocoaz5", openPrice: 5882.5, closeTime: "2025.11.12 16:25:34", closePrice: 5750.5, profit: 264.00, commission: -20.00 },
-  { ticket: "12475937", openTime: "2025.11.11 17:24:02", type: "sell", size: 2.00, item: "uscocoaz5", openPrice: 5835.0, closeTime: "2025.11.12 16:25:52", closePrice: 5750.5, profit: 169.00, commission: -20.00 },
-  { ticket: "12431799", openTime: "2025.11.11 17:37:06", type: "sell", size: 1.00, item: "uscocoaz5", openPrice: 5788.0, closeTime: "2025.11.12 16:23:55", closePrice: 5760.0, profit: 28.00, commission: -10.00 },
-  { ticket: "12364916", openTime: "2025.11.11 17:37:06", type: "sell", size: 1.00, item: "uscocoaz5", openPrice: 5788.0, closeTime: "2025.11.12 16:25:09", closePrice: 5750.0, profit: 38.00, commission: -10.00 },
-  { ticket: "12388502", openTime: "2025.11.11 17:37:06", type: "sell", size: 1.00, item: "uscocoaz5", openPrice: 5788.0, closeTime: "2025.11.12 16:24:34", closePrice: 5757.5, profit: 30.50, commission: -10.00 },
-  { ticket: "12511430", openTime: "2025.11.11 22:36:45", type: "buy", size: 0.10, item: "eurjpy.sd", openPrice: 178.575, closeTime: "2025.11.18 18:27:44", closePrice: 179.946, profit: 88.19, commission: 0.00 },
-  { ticket: "12568240", openTime: "2025.11.13 17:08:36", type: "buy", size: 0.10, item: "eurjpy.sd", openPrice: 179.581, closeTime: "2025.11.18 18:27:39", closePrice: 179.947, profit: 23.54, commission: 0.00 },
-  { ticket: "12576684", openTime: "2025.11.13 21:04:22", type: "buy", size: 0.10, item: "eurjpy.sd", openPrice: 179.710, closeTime: "2025.11.18 18:27:35", closePrice: 179.944, profit: 15.05, commission: 0.00 },
+  // Closed Trades from statement (9 Feb – 17 Apr 2026)
+  { ticket: "13958902", openTime: "2026.02.09 17:41:49", type: "buy", size: 2.00, item: "uscocoak6", openPrice: 4193.1, closeTime: "2026.04.08 22:21:43", closePrice: 3191.8, profit: -2002.60, commission: -20.00 },
+  { ticket: "13960715", openTime: "2026.02.09 20:29:24", type: "buy", size: 2.00, item: "uscocoak6", openPrice: 4074.6, closeTime: "2026.04.08 22:21:43", closePrice: 3191.8, profit: -1765.60, commission: -20.00 },
+  { ticket: "14223218", openTime: "2026.03.06 16:12:40", type: "buy", size: 1.00, item: "uscocoak6", openPrice: 3101.1, closeTime: "2026.04.08 22:21:42", closePrice: 3191.8, profit: 90.70, commission: -10.00 },
+  { ticket: "14261308", openTime: "2026.03.09 17:30:01", type: "buy", size: 1.00, item: "uscocoak6", openPrice: 3252.1, closeTime: "2026.04.08 22:21:42", closePrice: 3191.8, profit: -60.30, commission: -10.00 },
+  { ticket: "14107944", openTime: "2026.03.10 17:05:08", type: "buy", size: 1.00, item: "uscocoak6", openPrice: 3353.2, closeTime: "2026.04.08 22:21:43", closePrice: 3191.8, profit: -161.40, commission: -10.00 },
+  { ticket: "14670117", openTime: "2026.04.08 15:19:08", type: "buy", size: 1.00, item: "uscocoak6", openPrice: 3153.6, closeTime: "2026.04.08 22:21:43", closePrice: 3191.8, profit: 38.20, commission: -10.00 },
+  { ticket: "14673014", openTime: "2026.04.08 16:18:33", type: "buy", size: 1.00, item: "uscocoak6", openPrice: 3185.8, closeTime: "2026.04.08 22:21:42", closePrice: 3191.8, profit: 6.00, commission: -10.00 },
+  { ticket: "14658929", openTime: "2026.04.08 16:23:50", type: "buy", size: 1.00, item: "uscocoak6", openPrice: 3202.2, closeTime: "2026.04.08 22:21:43", closePrice: 3191.8, profit: -10.40, commission: -10.00 },
+  { ticket: "14673287", openTime: "2026.04.08 16:34:28", type: "buy", size: 1.00, item: "uscocoak6", openPrice: 3232.8, closeTime: "2026.04.08 22:21:43", closePrice: 3191.8, profit: -41.00, commission: -10.00 },
+  { ticket: "14677240", openTime: "2026.04.09 04:50:32", type: "buy", size: 1.30, item: "eurjpy.sd", openPrice: 185.224, closeTime: "2026.04.17 08:27:10", closePrice: 187.917, profit: 2195.29, commission: 0.00 },
+  { ticket: "14676645", openTime: "2026.04.09 12:21:02", type: "buy", size: 1.30, item: "eurjpy.sd", openPrice: 185.654, closeTime: "2026.04.14 07:29:01", closePrice: 187.202, profit: 1265.09, commission: 0.00 },
+  { ticket: "14695457", openTime: "2026.04.10 12:19:19", type: "buy", size: 1.30, item: "eurjpy.sd", openPrice: 186.349, closeTime: "2026.04.17 08:27:09", closePrice: 187.917, profit: 1278.21, commission: 0.00 },
+  { ticket: "14706849", openTime: "2026.04.13 01:05:47", type: "buy", size: 1.30, item: "eurjpy.sd", openPrice: 186.518, closeTime: "2026.04.17 08:27:06", closePrice: 187.917, profit: 1140.44, commission: 0.00 },
+  { ticket: "14707030", openTime: "2026.04.13 18:41:12", type: "buy", size: 3.90, item: "eurjpy.sd", openPrice: 187.045, closeTime: "2026.04.17 08:27:04", closePrice: 187.922, profit: 2144.70, commission: 0.00 },
+  { ticket: "14720902", openTime: "2026.04.13 21:49:10", type: "buy", size: 1.00, item: "eurjpy.sd", openPrice: 187.297, closeTime: "2026.04.17 08:27:02", closePrice: 187.923, profit: 392.53, commission: 0.00 },
+  { ticket: "14726743", openTime: "2026.04.15 15:57:17", type: "buy", size: 3.00, item: "eurjpy.sd", openPrice: 187.580, closeTime: "2026.04.17 08:27:00", closePrice: 187.922, profit: 643.35, commission: 0.00 },
+  { ticket: "14759565", openTime: "2026.04.16 00:41:17", type: "buy", size: 1.00, item: "eurjpy.sd", openPrice: 187.662, closeTime: "2026.04.17 08:26:57", closePrice: 187.921, profit: 162.40, commission: 0.00 },
+  { ticket: "14731791", openTime: "2026.04.17 04:08:18", type: "buy", size: 1.00, item: "eurjpy.sd", openPrice: 187.753, closeTime: "2026.04.17 08:26:59", closePrice: 187.921, profit: 105.34, commission: 0.00 },
 ];
 
-export const performanceMetrics = {
-  // Core Performance
-  grossProfit: 4728.87,
-  grossLoss: 1075.08,
-  totalNetProfit: 3653.79,
-  profitFactor: 4.40,
-  expectedPayoff: 117.86,
+// Period-specific performance data
+export const performanceMetricsQTD = {
+  // Core Performance (1–20 Apr 2026)
+  grossProfit: 7327.96,
+  grossLoss: 2242.30,
+  totalNetProfit: 5085.45,
+  profitFactor: 3.27,
+  expectedPayoff: 423.78,
   
   // Drawdown Metrics
-  absoluteDrawdown: 1060.45,
-  maximalDrawdown: 1075.08,
-  relativeDrawdown: 10.74,
+  absoluteDrawdown: 2022.60,
+  maximalDrawdown: 2242.30,
+  relativeDrawdown: 10.10,
   
   // Balance Info
-  balance: 13653.79,
-  equity: 13653.79,
-  initialBalance: 10000,
-  roi: 36.54, // Total Portfolio Return: 37% -> using exact calculation
+  balance: 30117.45,
+  equity: 30117.45,
+  initialBalance: 25032,
+  roi: 20.31,
   
-  // Risk-Adjusted Metrics (from BMC simulation)
-  sharpeRatioMonthly: 0.58,
-  sharpeRatioAnnualized: 2.0,
-  riskFreeRate: 4, // US T-Bill 3 Month (%)
-  excessReturn: 25, // (%)
-  averageExcessReturn: 8, // (%)
-  standardDeviation: 14.39, // 0.1439 * 100
-  variance: 2.07, // 0.0207 * 100
-  squaredDeviation: 4.143, // 0.04143 * 100
-  alpha: 33, // Q4/25 Alpha (%)
+  // Risk-Adjusted Metrics
+  sharpeRatioMonthly: 0.72,
+  sharpeRatioAnnualized: 2.50,
+  riskFreeRate: 4,
+  excessReturn: 16.31,
+  averageExcessReturn: 5.44,
+  standardDeviation: 12.15,
+  variance: 1.48,
+  squaredDeviation: 3.24,
+  alpha: 25,
   
   // High-Water Mark & Hurdle Rate
-  highWaterMark: 10800, // Initial capital ($10,000) + 8% hurdle ($800) - threshold to outperform for fees
-  hurdleRate: 8, // Minimum target return (%)
+  highWaterMark: 27034.56,
+  hurdleRate: 8,
 };
 
-export const tradeStatistics = {
-  totalTrades: 31,
-  shortPositions: 21,
-  shortWinRate: 80.95,
-  longPositions: 10,
-  longWinRate: 80.00,
-  profitTrades: 25,
-  profitTradesPercent: 80.65,
-  lossTrades: 6,
-  lossTradesPercent: 19.35,
-  largestProfitTrade: 495.00,
-  largestLossTrade: -308.50,
-  averageProfitTrade: 189.15,
-  averageLossTrade: -179.18,
-  maxConsecutiveWins: 23,
-  maxConsecutiveLosses: 6,
-  avgConsecutiveWins: 13,
-  avgConsecutiveLosses: 6,
+export const performanceMetricsYTD = {
+  // Core Performance (1 Jan – 20 Apr 2026)
+  grossProfit: 9436.25,
+  grossLoss: 4125.30,
+  totalNetProfit: 5310.95,
+  profitFactor: 2.29,
+  expectedPayoff: 295.05,
+  
+  // Drawdown Metrics
+  absoluteDrawdown: 4016.40,
+  maximalDrawdown: 4097.10,
+  relativeDrawdown: 20.67,
+  
+  // Balance Info
+  balance: 25032.92,
+  equity: 25032.92,
+  initialBalance: 20000,
+  roi: 26.55,
+  
+  // Risk-Adjusted Metrics
+  sharpeRatioMonthly: 0.58,
+  sharpeRatioAnnualized: 2.0,
+  riskFreeRate: 4,
+  excessReturn: 22.55,
+  averageExcessReturn: 7.52,
+  standardDeviation: 14.39,
+  variance: 2.07,
+  squaredDeviation: 4.143,
+  alpha: 28,
+  
+  // High-Water Mark & Hurdle Rate
+  highWaterMark: 21600,
+  hurdleRate: 8,
 };
+
+// Default to QTD for compatibility
+export const performanceMetrics = performanceMetricsQTD;
+
+export const tradeStatisticsQTD = {
+  totalTrades: 12,
+  longPositions: 12,
+  longWinRate: 75.00,
+  profitTrades: 9,
+  profitTradesPercent: 75.00,
+  lossTrades: 3,
+  lossTradesPercent: 25.00,
+  largestProfitTrade: 2195.29,
+  largestLossTrade: -41.00,
+  averageProfitTrade: 813.11,
+  averageLossTrade: -747.43,
+  maxConsecutiveWins: 9,
+  maxConsecutiveLosses: 2,
+  avgConsecutiveWins: 4,
+  avgConsecutiveLosses: 2,
+};
+
+export const tradeStatisticsYTD = {
+  totalTrades: 18,
+  longPositions: 18,
+  longWinRate: 61.11,
+  profitTrades: 11,
+  profitTradesPercent: 61.11,
+  lossTrades: 7,
+  lossTradesPercent: 38.89,
+  largestProfitTrade: 2195.29,
+  largestLossTrade: -2002.60,
+  averageProfitTrade: 857.84,
+  averageLossTrade: -589.33,
+  maxConsecutiveWins: 9,
+  maxConsecutiveLosses: 6,
+  avgConsecutiveWins: 4,
+  avgConsecutiveLosses: 4,
+};
+
+// Default to QTD for compatibility
+export const tradeStatistics = tradeStatisticsQTD;
