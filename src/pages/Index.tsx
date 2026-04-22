@@ -17,6 +17,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MetricCard } from "@/components/TradingDashboard/MetricCard";
+import { PerformanceChart } from "@/components/TradingDashboard/PerformanceChart";
 import { ROIChart } from "@/components/TradingDashboard/ROIChart";
 import { TradeDistribution } from "@/components/TradingDashboard/TradeDistribution";
 import { TradeHistory } from "@/components/TradingDashboard/TradeHistory";
@@ -32,19 +33,22 @@ import {
   tradeStatisticsQTD,
   tradeStatisticsYTD,
 } from "@/data/tradingData";
+import { Period, PERIOD_LABELS } from "@/lib/types";
+
+const metricsMap = { QTD: performanceMetricsQTD, YTD: performanceMetricsYTD };
+const statsMap = { QTD: tradeStatisticsQTD, YTD: tradeStatisticsYTD };
 
 const Index = () => {
-  const [selectedPeriod, setSelectedPeriod] = useState<"QTD" | "YTD">("QTD");
+  const [selectedPeriod, setSelectedPeriod] = useState<Period>("QTD");
 
-  const performanceMetrics =
-    selectedPeriod === "QTD" ? performanceMetricsQTD : performanceMetricsYTD;
-  const tradeStatistics =
-    selectedPeriod === "QTD" ? tradeStatisticsQTD : tradeStatisticsYTD;
+  const performanceMetrics = metricsMap[selectedPeriod];
+  const tradeStatistics = statsMap[selectedPeriod];
+  const periodLabel = PERIOD_LABELS[selectedPeriod];
 
-  const recipient = "Mr. Farouk Bernaoui";
-  const clientSharePercent = 0.6;
-  const rawProfit = Number(performanceMetrics.totalNetProfit) || 0;
-  const clientTakeHome = rawProfit * clientSharePercent;
+  const quarterContext =
+    selectedPeriod === "QTD"
+      ? "Q2 2026 · 1 Apr – 20 Apr"
+      : "Q1 + Q2 2026 · 28 Jan – 20 Apr";
 
   const fmtMoney = (n: number) =>
     n.toLocaleString(undefined, {
@@ -52,16 +56,24 @@ const Index = () => {
       maximumFractionDigits: 2,
     });
 
-  const periodLabel =
-    selectedPeriod === "QTD" ? "1 Apr – 20 Apr 2026" : "28 Jan – 20 Apr 2026";
+  const pnlTrend = performanceMetrics.totalNetProfit >= 0 ? "up" : "down";
+  const roiTrend = performanceMetrics.roi >= 0 ? "up" : "down";
+  const sharpeTrend =
+    performanceMetrics.sharpeRatioAnnualized >= 0 ? "up" : "down";
+  const pnlDisplay = `${performanceMetrics.totalNetProfit >= 0 ? "+" : ""}$${fmtMoney(
+    Math.abs(performanceMetrics.totalNetProfit)
+  )}`;
+  const roiDisplay = `${performanceMetrics.roi >= 0 ? "+" : ""}${performanceMetrics.roi}%`;
 
-  const percentText = `${Math.round(clientSharePercent * 100)}%`;
-  const rawProfitFormatted = fmtMoney(rawProfit);
-  const takeHomeFormatted = fmtMoney(clientTakeHome);
+  const recipient = "Mr. Farouk Bernaoui";
+  const clientSharePercent = 0.6;
+  const clientTakeHome = performanceMetrics.totalNetProfit * clientSharePercent;
+  const clientShareLabel = `${Math.round(clientSharePercent * 100)}%`;
+  const takeHomeDisplay = `$${fmtMoney(Math.abs(clientTakeHome))}`;
 
   return (
     <div className="min-h-screen bg-background">
-      {/* ── Header ─────────────────────────────────────────────────────────── */}
+      {/* ── Header ───────────────────────────────────────────────────────── */}
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex flex-col md:flex-row gap-3 items-center justify-between">
           <div className="text-center md:text-left">
@@ -78,169 +90,261 @@ const Index = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8 space-y-10">
-        {/* ── Confidentiality alert ──────────────────────────────────────── */}
+        {/* ── Confidentiality alert ────────────────────────────────────── */}
         <Alert className="bg-warning/10 border-warning/50">
           <AlertCircle className="h-4 w-4 text-warning" />
           <AlertDescription className="text-foreground">
-            <strong>Confidential:</strong> This trading data is proprietary information of Blue Marvel Capital.
-            Unauthorised distribution or reproduction is prohibited.
+            <strong>Confidential:</strong> This trading data is proprietary
+            information of Blue Marvel Capital. Unauthorised distribution or
+            reproduction is prohibited.
           </AlertDescription>
         </Alert>
 
-        {/* ── Page heading + period toggle ──────────────────────────────── */}
+        {/* ── YTD Q1 floating loss context notice ──────────────────────── */}
+        <motion.div
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25 }}
+        >
+          {selectedPeriod === "YTD" && (
+            <Alert className="bg-secondary border-border">
+              <AlertCircle className="h-4 w-4 text-muted-foreground" />
+              <AlertDescription className="text-foreground text-sm">
+                <strong>Q1 context (28 Jan – 31 Mar 2026):</strong> Closed P/L
+                was −$227.20. At quarter close, 5 Cocoa K6 longs carried a
+                floating loss of −$3,436.50 (equity $16,336.30). These resolved
+                on 8 Apr (Q2) and are included in YTD figures.
+              </AlertDescription>
+            </Alert>
+          )}
+        </motion.div>
+
+        {/* ── Heading + period toggle ───────────────────────────────────── */}
         <div>
           <div className="text-center mb-4">
             <p className="text-muted-foreground">
               Personalised performance report —{" "}
               <span className="font-bold text-foreground">{recipient}</span>
             </p>
-            <p className="text-xs text-muted-foreground mt-1">Account #3591662 · {periodLabel}</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Account #3591662 · {quarterContext}
+            </p>
           </div>
           <PeriodToggle selectedPeriod={selectedPeriod} onToggle={setSelectedPeriod} />
         </div>
 
-        {/* ── Capital overview ──────────────────────────────────────────── */}
+        {/* ── Capital overview ─────────────────────────────────────────── */}
         <section>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             <MetricCard
               title="Initial deposit"
               value={`$${fmtMoney(performanceMetrics.initialBalance)}`}
-              subtitle="Capital deployed"
+              subtitle="Capital deployed · Jan 2026"
               icon={DollarSign}
               trend="neutral"
             />
             <MetricCard
               title="Current balance"
               value={`$${fmtMoney(performanceMetrics.balance)}`}
-              subtitle={`Net P&L: +$${fmtMoney(performanceMetrics.totalNetProfit)}`}
+              subtitle={`Net P&L: ${pnlDisplay}`}
               icon={DollarSign}
-              trend="up"
+              trend={pnlTrend}
             />
             <MetricCard
               title="Total return"
-              value={`${performanceMetrics.roi}%`}
-              subtitle={`On $${(performanceMetrics.initialBalance / 1000).toFixed(0)}k initial deposit`}
+              value={roiDisplay}
+              subtitle={`On $${(performanceMetrics.initialBalance / 1000).toFixed(
+                0
+              )}k deposit · ${quarterContext}`}
               icon={TrendingUp}
-              trend="up"
+              trend={roiTrend}
             />
           </div>
         </section>
 
-        {/* ── Client take-home summary ─────────────────────────────────── */}
-        <div className="flex justify-center">
+       {/* ── Client take-home summary ─────────────────────────────────── */}
+<section>
+  <motion.div
+    initial={{ opacity: 0, y: 18, scale: 0.98 }}
+    animate={{ opacity: 1, y: 0, scale: 1 }}
+    transition={{ duration: 0.5, ease: "easeOut" }}
+    whileHover={{ y: -3, scale: 1.01 }}
+    className="w-full"
+  >
+    <Card className="relative overflow-hidden border border-emerald-500/25 bg-gradient-to-br from-emerald-500/10 via-card to-card shadow-xl shadow-emerald-500/10">
+      {/* top accent bar */}
+      <motion.div
+        className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent"
+        initial={{ x: "-35%" }}
+        animate={{ x: "35%" }}
+        transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+      />
+
+      {/* soft glow */}
+      <motion.div
+        aria-hidden="true"
+        className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-emerald-400/15 blur-3xl"
+        animate={{
+          scale: [1, 1.08, 1],
+          opacity: [0.35, 0.55, 0.35],
+        }}
+        transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+      />
+
+      <CardContent className="relative p-6 sm:p-8">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+          <div className="max-w-xl">
+            <div className="flex items-center gap-2 mb-3">
+              <motion.span
+                className="h-2.5 w-2.5 rounded-full bg-emerald-500"
+                animate={{ scale: [1, 1.35, 1], opacity: [0.7, 1, 0.7] }}
+                transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+              />
+              <span className="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-600">
+                Client take-home
+              </span>
+              <Badge
+                variant="secondary"
+                className="ml-1 border border-emerald-500/20 bg-emerald-500/10 text-emerald-700"
+              >
+                {clientShareLabel} share
+              </Badge>
+            </div>
+
+            <h3 className="text-xl sm:text-2xl font-bold text-foreground">
+              Estimated client take-home
+            </h3>
+            <p className="mt-2 text-sm text-muted-foreground leading-6">
+              Based on the selected period, this represents the client’s share
+              of total net profit after the agreed profit split.
+            </p>
+
+            <div className="mt-5 flex flex-wrap items-center gap-3">
+              <div className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-700">
+                Period: {selectedPeriod}
+              </div>
+              <div className="rounded-full border border-border bg-background/60 px-3 py-1 text-xs font-medium text-muted-foreground">
+                {quarterContext}
+              </div>
+            </div>
+          </div>
+
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.2, type: "spring", stiffness: 100 }}
-            whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
-            className="w-full max-w-3xl"
+            initial={{ opacity: 0, scale: 0.94, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ delay: 0.12, duration: 0.35 }}
+            whileHover={{ scale: 1.02 }}
+            className="w-full lg:w-[380px]"
           >
-            <Card className="relative border-2 border-primary/30 shadow-2xl bg-gradient-to-br from-card via-card to-primary/10">
-              <div className="bg-gradient-to-r from-primary/20 via-primary/10 to-transparent px-6 py-4 border-b border-primary/20">
-                <div className="flex items-center justify-center gap-3">
+            <div className="relative overflow-hidden rounded-2xl border border-emerald-500/25 bg-gradient-to-br from-emerald-500/15 via-emerald-500/8 to-background p-5 shadow-lg shadow-emerald-500/10">
+              {/* moving shine */}
+              <motion.div
+                aria-hidden="true"
+                className="absolute inset-y-0 left-0 w-1/2 bg-gradient-to-r from-transparent via-white/10 to-transparent"
+                initial={{ x: "-120%" }}
+                animate={{ x: "220%" }}
+                transition={{ duration: 2.8, repeat: Infinity, ease: "linear" }}
+              />
+
+              <div className="relative flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3">
                   <motion.div
-                    animate={{ rotate: [0, 10, -10, 0] }}
-                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                    animate={{
+                      scale: [1, 1.12, 1],
+                      boxShadow: [
+                        "0 0 0 0 rgba(16,185,129,0.18)",
+                        "0 0 0 14px rgba(16,185,129,0)",
+                        "0 0 0 0 rgba(16,185,129,0)",
+                      ],
+                    }}
+                    transition={{
+                      duration: 2.2,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    }}
+                    className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/15"
                   >
-                    <Target className="w-5 h-5 text-primary" />
+                    <DollarSign className="h-6 w-6 text-emerald-500" />
                   </motion.div>
-                  <span className="text-sm font-bold uppercase tracking-widest text-primary">
-                    Client Summary
-                  </span>
-                  <Badge variant="secondary" className="ml-2">
-                    {percentText} Share
-                  </Badge>
+
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">
+                      Take-home
+                    </p>
+                    <p className="text-sm text-muted-foreground">{recipient}</p>
+                  </div>
                 </div>
+
+                <span className="text-xs font-medium text-muted-foreground">
+                  {clientShareLabel}
+                </span>
               </div>
 
-              <CardContent className="p-6 sm:p-8">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
-                  <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.4 }}
-                    className="text-center lg:text-left min-w-0"
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.18, duration: 0.35 }}
+                className="relative mt-5"
+              >
+                <div className="flex items-end gap-2">
+                  <motion.p
+                    initial={{ scale: 0.96, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: 0.24, duration: 0.35 }}
+                    className="text-3xl sm:text-4xl font-extrabold tracking-tight text-emerald-600"
                   >
-                    <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wide">
-                      Prepared for
-                    </p>
-                    <h3 className="text-xl font-bold text-foreground break-words">
-                      {recipient}
-                    </h3>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      QTD / YTD Performance Report
-                    </p>
-                  </motion.div>
-
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 }}
-                    className="flex items-center justify-center"
-                  >
-                    <div className="w-full max-w-xs rounded-2xl border-2 border-green-500/30 bg-gradient-to-br from-green-500/15 via-emerald-500/10 to-green-600/5 p-5 text-center shadow-lg shadow-green-500/10">
-                      <p className="text-xs font-semibold text-green-400 uppercase tracking-widest mb-2">
-                        Your Take-Home
-                      </p>
-
-                      <div className="flex items-center justify-center gap-3">
-                        <motion.div
-                          animate={{
-                            scale: [1, 1.12, 1],
-                            boxShadow: [
-                              "0 0 0 0 rgba(34, 197, 94, 0.18)",
-                              "0 0 0 10px rgba(34, 197, 94, 0)",
-                              "0 0 0 0 rgba(34, 197, 94, 0)",
-                            ],
-                          }}
-                          transition={{ duration: 2, repeat: Infinity }}
-                          className="w-12 h-12 rounded-full bg-green-500/25 flex items-center justify-center shrink-0"
-                        >
-                          <DollarSign className="w-6 h-6 text-green-500" />
-                        </motion.div>
-
-                        <motion.p
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          transition={{ delay: 0.7 }}
-                          className="text-2xl sm:text-3xl md:text-3xl font-extrabold text-green-600 break-words"
-                        >
-                          ${takeHomeFormatted}
-                        </motion.p>
-                      </div>
-
-                      <p className="mt-3 text-xs text-muted-foreground font-mono bg-background/0 rounded-md py-2 px-3 inline-block break-words">
-                        ${rawProfitFormatted} × {percentText} = ${takeHomeFormatted}
-                      </p>
-                    </div>
-                  </motion.div>
-
-                  <motion.div
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.6 }}
-                    className="text-center lg:text-right min-w-0"
-                  >
-                    <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wide">
-                      Total Profit Generated
-                    </p>
-                    <p className="text-2xl font-bold text-foreground break-words">
-                      ${rawProfitFormatted}
-                    </p>
-                    <div className="flex items-center justify-center lg:justify-end gap-2 mt-2">
-                      <TrendingUp className="w-4 h-4 text-green-500" />
-                      <span className="text-sm text-green-500 font-medium">
-                        +{performanceMetrics.roi}%
-                      </span>
-                    </div>
-                  </motion.div>
+                    {takeHomeDisplay}
+                  </motion.p>
                 </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </div>
 
-        {/* ── Performance summary ───────────────────────────────────────── */}
+                <div className="mt-4 rounded-xl border border-border/70 bg-background/70 px-4 py-3">
+                  <p className="text-xs text-muted-foreground">Calculation</p>
+                  <p className="mt-1 font-mono text-sm text-foreground break-words">
+                    ${fmtMoney(Math.abs(performanceMetrics.totalNetProfit))} ×{" "}
+                    {clientShareLabel} = {takeHomeDisplay}
+                  </p>
+                </div>
+
+                <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
+                  <span>Share of net profit</span>
+                  <span className="font-semibold text-foreground">
+                    {clientShareLabel}
+                  </span>
+                </div>
+
+                <div className="mt-2 h-2 w-full rounded-full bg-border overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${clientSharePercent * 100}%` }}
+                    transition={{ duration: 0.9, ease: "easeOut", delay: 0.2 }}
+                    className="h-full rounded-full bg-gradient-to-r from-emerald-500 via-green-500 to-lime-400"
+                  />
+                </div>
+              </motion.div>
+            </div>
+          </motion.div>
+
+          <div className="lg:text-right">
+            <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+              Total profit generated
+            </p>
+            <p className="mt-2 text-2xl font-bold text-foreground">
+              {pnlDisplay}
+            </p>
+            <div className="mt-2 flex items-center justify-start lg:justify-end gap-2">
+              <TrendingUp className="h-4 w-4 text-emerald-500" />
+              <span className="text-sm font-medium text-emerald-500">
+                {roiDisplay}
+              </span>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  </motion.div>
+</section>
+
+        {/* ── Performance summary ──────────────────────────────────────── */}
         <section>
           <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-primary" />
@@ -249,11 +353,15 @@ const Index = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
             <MetricCard
               title="Total net profit"
-              value={`$${fmtMoney(performanceMetrics.totalNetProfit)}`}
-              subtitle={periodLabel}
+              value={pnlDisplay}
+              subtitle={quarterContext}
               icon={DollarSign}
-              trend="up"
-              tooltip={`Total profit after all commissions and fees for ${selectedPeriod}.`}
+              trend={pnlTrend}
+              tooltip={`Total closed P/L after all commissions. ${
+                selectedPeriod === "YTD"
+                  ? "Includes Q1 (−$227.20) and Q2 (+$5,311)."
+                  : "Q2 activity only."
+              }`}
               delay={0.1}
             />
             <MetricCard
@@ -261,8 +369,8 @@ const Index = () => {
               value={performanceMetrics.sharpeRatioAnnualized.toFixed(2)}
               subtitle={`Annualised · monthly: ${performanceMetrics.sharpeRatioMonthly}`}
               icon={Gauge}
-              trend="up"
-              tooltip="Risk-adjusted return. Above 2.0 is considered outstanding. Calculated against the 4% US T-Bill risk-free rate."
+              trend={sharpeTrend}
+              tooltip="Risk-adjusted return. Above 2.0 is outstanding. Calculated against 4% US T-Bill rate."
               delay={0.2}
             />
             <MetricCard
@@ -270,8 +378,8 @@ const Index = () => {
               value={`${performanceMetrics.alpha}%`}
               subtitle={`vs ${performanceMetrics.hurdleRate}% hurdle rate`}
               icon={LineChart}
-              trend="up"
-              tooltip="Alpha measures outperformance relative to the hurdle rate. Positive alpha confirms active management value."
+              trend={performanceMetrics.alpha > 0 ? "up" : "neutral"}
+              tooltip="Outperformance relative to the hurdle rate."
               delay={0.3}
             />
             <MetricCard
@@ -280,28 +388,31 @@ const Index = () => {
               subtitle={`${tradeStatistics.profitTrades} of ${tradeStatistics.totalTrades} trades`}
               icon={Target}
               trend="up"
-              tooltip="Percentage of profitable trades. Industry average is 40–60%."
+              tooltip="Percentage of profitable closed trades."
               delay={0.4}
             />
           </div>
         </section>
 
-        {/* ── Performance analysis charts ───────────────────────────────── */}
+        {/* ── Performance analysis ─────────────────────────────────────── */}
         <section>
           <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
             <LineChart className="w-5 h-5 text-primary" />
             Performance analysis
           </h2>
           <div className="space-y-6">
+            <PerformanceChart period={selectedPeriod} />
             <ROIChart period={selectedPeriod} />
           </div>
         </section>
 
-        {/* ── Monthly P&L breakdown ─────────────────────────────────────── */}
+        {/* ── Monthly / quarterly P&L ──────────────────────────────────── */}
         <section>
           <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
             <CalendarDays className="w-5 h-5 text-primary" />
-            Monthly P&amp;L breakdown
+            {selectedPeriod === "QTD"
+              ? "Q2 P&L breakdown"
+              : "Quarterly & monthly P&L breakdown"}
           </h2>
           <MonthlyPnLChart period={selectedPeriod} />
         </section>
@@ -336,7 +447,7 @@ const Index = () => {
           <BenchmarkComparison period={selectedPeriod} />
         </section>
 
-        {/* ── Detailed metrics grid ─────────────────────────────────────── */}
+        {/* ── Detailed metrics ──────────────────────────────────────────── */}
         <section>
           <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
             <Gauge className="w-5 h-5 text-primary" />
@@ -348,8 +459,8 @@ const Index = () => {
               value={performanceMetrics.profitFactor.toFixed(2)}
               subtitle="Gross profit ÷ gross loss"
               icon={Activity}
-              trend="up"
-              tooltip="Ratio of gross profit to gross loss. Above 2.0 is excellent."
+              trend={performanceMetrics.profitFactor >= 1 ? "up" : "down"}
+              tooltip="Above 1.0 means more won than lost. Above 2.0 is excellent."
               delay={0.1}
             />
             <MetricCard
@@ -358,7 +469,7 @@ const Index = () => {
               subtitle="Portfolio volatility"
               icon={BarChart3}
               trend="neutral"
-              tooltip="Standard deviation of returns. Lower volatility with high returns indicates efficient risk management."
+              tooltip="Lower volatility with high returns = efficient risk management."
               delay={0.2}
             />
             <MetricCard
@@ -367,7 +478,7 @@ const Index = () => {
               subtitle="Per losing trade"
               icon={Activity}
               trend="down"
-              tooltip="Average loss per losing trade. Smaller losses indicate good risk management."
+              tooltip="Average loss per losing trade."
               delay={0.3}
             />
             <MetricCard
@@ -376,7 +487,7 @@ const Index = () => {
               subtitle="US T-Bill (3 month)"
               icon={BarChart3}
               trend="neutral"
-              tooltip="Baseline risk-free rate used for Sharpe ratio calculation."
+              tooltip="Annualised risk-free rate used for Sharpe ratio calculation."
               delay={0.4}
             />
           </div>
@@ -384,10 +495,10 @@ const Index = () => {
             <MetricCard
               title="High-water mark"
               value={`$${fmtMoney(performanceMetrics.highWaterMark)}`}
-              subtitle="Peak balance reached (17 Apr)"
+              subtitle="Peak balance · 17 Apr 2026"
               icon={TrendingUp}
               trend="up"
-              tooltip="The highest account balance achieved — $25,032.92 on 17 Apr 2026 after the EUR/JPY run completed."
+              tooltip="Highest account balance ever reached — $25,032.92 on 17 Apr 2026 (Q2) after the EUR/JPY run."
               delay={0.1}
             />
             <MetricCard
@@ -396,7 +507,7 @@ const Index = () => {
               subtitle="Minimum target return"
               icon={Target}
               trend="neutral"
-              tooltip="The minimum return threshold that must be exceeded before performance fees apply."
+              tooltip="Minimum return threshold before performance fees apply."
               delay={0.2}
             />
             <MetricCard
@@ -411,10 +522,10 @@ const Index = () => {
             <MetricCard
               title="Total trades"
               value={tradeStatistics.totalTrades}
-              subtitle={`${selectedPeriod} · {periodLabel}`}
+              subtitle={quarterContext}
               icon={BarChart3}
               trend="neutral"
-              tooltip="Total number of closed positions for the selected period."
+              tooltip="Total closed positions for the selected period."
               delay={0.4}
             />
           </div>
@@ -431,7 +542,7 @@ const Index = () => {
         </section>
       </main>
 
-      {/* ── Footer ─────────────────────────────────────────────────────────── */}
+      {/* ── Footer ───────────────────────────────────────────────────────── */}
       <footer className="border-t border-border mt-16 py-8">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
           <p>© {new Date().getFullYear()} Blue Marvel Capital. All rights reserved.</p>

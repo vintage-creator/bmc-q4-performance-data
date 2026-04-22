@@ -5,11 +5,12 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { InfoIcon } from "lucide-react";
+import { InfoIcon, TrendingUp, TrendingDown } from "lucide-react";
+import { Period, PERIOD_LABELS } from "@/lib/types";
 
 interface PeriodToggleProps {
-  selectedPeriod: "QTD" | "YTD";
-  onToggle: (period: "QTD" | "YTD") => void;
+  selectedPeriod: Period;
+  onToggle: (period: Period) => void;
 }
 
 export const PeriodToggle = ({ selectedPeriod, onToggle }: PeriodToggleProps) => {
@@ -23,31 +24,41 @@ export const PeriodToggle = ({ selectedPeriod, onToggle }: PeriodToggleProps) =>
       <Tooltip>
         <TooltipTrigger asChild>
           <div className="flex items-center gap-2 cursor-help select-none">
-            <span className="text-sm font-medium text-muted-foreground">
-              Time period:
-            </span>
+            <span className="text-sm font-medium text-muted-foreground">Time period:</span>
             <InfoIcon className="w-4 h-4 text-muted-foreground hover:text-foreground transition-colors duration-150" />
           </div>
         </TooltipTrigger>
-        <TooltipContent side="bottom" className="w-64">
-          <div className="space-y-2 text-xs">
-            <p className="font-semibold">Performance period selection</p>
-            <div>
-              <p className="font-medium text-accent">QTD — Quarter-to-date</p>
-              <p className="text-muted-foreground">April-only activity: 1 Apr – 20 Apr 2026</p>
+        <TooltipContent side="bottom" className="w-72 p-3">
+          <div className="space-y-3 text-xs">
+            <p className="font-semibold text-foreground">Performance period selection</p>
+
+            <div className="space-y-1">
+              <p className="font-medium text-primary">QTD — Quarter-to-date</p>
+              <p className="text-muted-foreground">Current quarter activity only: 1 Apr – 20 Apr 2026</p>
+              <div className="pl-2 border-l-2 border-primary/30 mt-1 space-y-0.5">
+                <p className="text-muted-foreground">Q2 2026 · Apr: Cocoa K6 closes + EUR/JPY run</p>
+              </div>
             </div>
-            <div>
-              <p className="font-medium text-accent">YTD — Year-to-date</p>
-              <p className="text-muted-foreground">
-                Full account history: 28 Jan – 20 Apr 2026
-                (account inception)
-              </p>
+
+            <div className="space-y-1">
+              <p className="font-medium text-primary">YTD — Year-to-date</p>
+              <p className="text-muted-foreground">Full account history since inception: 28 Jan – 20 Apr 2026</p>
+              <div className="pl-2 border-l-2 border-primary/30 mt-1 space-y-0.5">
+                <p className="text-muted-foreground flex items-center gap-1">
+                  <TrendingDown className="w-3 h-3 text-destructive" />
+                  Q1 (28 Jan – 31 Mar): −$227.20 closed P/L
+                </p>
+                <p className="text-muted-foreground flex items-center gap-1">
+                  <TrendingUp className="w-3 h-3 text-success" />
+                  Q2 to date (1 Apr – 20 Apr): +$5,389.25
+                </p>
+              </div>
             </div>
           </div>
         </TooltipContent>
       </Tooltip>
 
-      {/* Toggle pill */}
+      {/* Two-button toggle pill */}
       <div className="relative flex items-center gap-1 bg-secondary rounded-lg p-1 border border-border">
         {(["QTD", "YTD"] as const).map((p) => (
           <button
@@ -55,7 +66,6 @@ export const PeriodToggle = ({ selectedPeriod, onToggle }: PeriodToggleProps) =>
             onClick={() => onToggle(p)}
             className="relative px-4 py-1.5 rounded text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
-            {/* Sliding active background */}
             {selectedPeriod === p && (
               <motion.span
                 layoutId="period-pill"
@@ -63,34 +73,32 @@ export const PeriodToggle = ({ selectedPeriod, onToggle }: PeriodToggleProps) =>
                 transition={{ type: "spring", stiffness: 380, damping: 34 }}
               />
             )}
-            <span
-              className={`relative z-10 transition-colors duration-150 ${
-                selectedPeriod === p
-                  ? "text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
+            <span className={`relative z-10 transition-colors duration-150 ${
+              selectedPeriod === p
+                ? "text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}>
               {p}
             </span>
           </button>
         ))}
       </div>
 
-      {/* Date badge — animates text swap */}
+      {/* Animated date badge */}
       <motion.div
         key={selectedPeriod}
         initial={{ opacity: 0, scale: 0.92 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.2 }}
+        className="flex items-center gap-2"
       >
-        <Badge
-          variant="outline"
-          className="bg-primary/10 text-primary border-primary/30 font-medium text-xs"
-        >
-          {selectedPeriod === "QTD"
-            ? "1 Apr – 20 Apr 2026"
-            : "28 Jan – 20 Apr 2026"}
+        <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 font-medium text-xs">
+          {PERIOD_LABELS[selectedPeriod]}
         </Badge>
+        {/* Sub-label showing which quarters are included */}
+        <span className="text-xs text-muted-foreground hidden sm:inline">
+          {selectedPeriod === "QTD" ? "Q2 2026 · to date" : "Q1 + Q2 2026 · inception to date"}
+        </span>
       </motion.div>
     </motion.div>
   );
