@@ -1,205 +1,161 @@
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
-import { performanceMetrics } from "@/data/tradingData";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid,
+  Tooltip, ResponsiveContainer, Cell,
+} from "recharts";
 import { Scale, TrendingUp, TrendingDown } from "lucide-react";
+import { performanceMetricsQ1, performanceMetricsQ2, performanceMetricsYTD } from "@/data/tradingData";
+import { Period } from "@/lib/types";
 
-// Benchmark data for comparison
-const benchmarkData = [
-  {
-    name: "BMC Portfolio",
-    return: performanceMetrics.roi,
-    sharpe: performanceMetrics.sharpeRatioAnnualized,
-    type: "portfolio",
-  },
-  {
-    name: "S&P 500",
-    return: 12.5, // Typical annual return
-    sharpe: 0.9,
-    type: "benchmark",
-  },
-  {
-    name: "NASDAQ",
-    return: 15.2,
-    sharpe: 0.85,
-    type: "benchmark",
-  },
-  {
-    name: "US T-Bill",
-    return: performanceMetrics.riskFreeRate,
-    sharpe: 0,
-    type: "riskfree",
-  },
-  {
-    name: "Hedge Fund Avg",
-    return: 8.5,
-    sharpe: 1.2,
-    type: "benchmark",
-  },
-];
+interface BenchmarkComparisonProps { period?: Period; }
 
-const returnComparisonData = benchmarkData.map(item => ({
-  name: item.name,
-  value: item.return,
-  type: item.type,
-}));
+// Risk-free rate by period: 1% for Q1/Q2, 2% for YTD
+const getRiskFreeReturn = (period: Period): number => {
+  if (period === "YTD") return 2;
+  if (period === "Q1" || period === "Q2") return 1;
+  console.warn(`Unknown period "${period}", defaulting to 1%`);
+  return 1;
+};
 
-const sharpeComparisonData = benchmarkData.map(item => ({
-  name: item.name,
-  value: item.sharpe,
-  type: item.type,
-}));
+const buildData = (roi: number, sharpe: number, period: Period) => {
+  const riskFreeReturn = getRiskFreeReturn(period);
+  return [
+    { name: "BMC Apollo",      return: roi,   sharpe,  type: "portfolio" },
+    { name: "S&P 500",         return: 12.5,  sharpe: 0.90, type: "benchmark" },
+    { name: "NASDAQ",          return: 15.2,  sharpe: 0.85, type: "benchmark" },
+    { name: "US T-Bill",       return: riskFreeReturn, sharpe: 0, type: "riskfree" },
+    { name: "Hedge Fund Avg",  return: 8.5,   sharpe: 1.20, type: "benchmark" },
+  ];
+};
 
-const getBarColor = (type: string) => {
-  switch (type) {
-    case "portfolio":
-      return "hsl(var(--primary))";
-    case "benchmark":
-      return "hsl(var(--chart-2))";
-    case "riskfree":
-      return "hsl(var(--muted-foreground))";
-    default:
-      return "hsl(var(--secondary))";
-  }
+const barColor = (type: string) => {
+  if (type === "portfolio") return "hsl(var(--primary))";
+  if (type === "riskfree")  return "hsl(var(--muted-foreground))";
+  return "hsl(var(--chart-2))";
 };
 
 interface ComparisonRowProps {
-  name: string;
-  portfolioValue: number;
-  benchmarkValue: number;
-  unit: string;
+  name: string; portfolioValue: number;
+  benchmarkValue: number; unit: string; index: number;
 }
 
-const ComparisonRow = ({ name, portfolioValue, benchmarkValue, unit }: ComparisonRowProps) => {
-  const difference = portfolioValue - benchmarkValue;
-  const isPositive = difference > 0;
-
+const ComparisonRow = ({ name, portfolioValue, benchmarkValue, unit, index }: ComparisonRowProps) => {
+  const diff = portfolioValue - benchmarkValue;
+  const isPositive = diff > 0;
   return (
-    <div className="flex items-center justify-between py-3 border-b border-border/50 last:border-0">
+    <motion.div
+      initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.3, delay: 0.05 * index }}
+      className="flex items-center justify-between py-3 border-b border-border/50 last:border-0"
+    >
       <span className="text-sm text-muted-foreground">{name}</span>
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3">
         <span className="text-sm font-medium text-foreground">{benchmarkValue}{unit}</span>
-        <div className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold ${
-          isPositive ? 'bg-success/20 text-success' : 'bg-destructive/20 text-destructive'
-        }`}>
+        <div className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold ${
+          isPositive ? "bg-success/20 text-success" : "bg-destructive/20 text-destructive"}`}>
           {isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-          {isPositive ? '+' : ''}{difference.toFixed(2)}{unit}
+          {isPositive ? "+" : ""}{diff.toFixed(2)}{unit}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
-export const BenchmarkComparison = () => {
+const metricsMap = { Q1: performanceMetricsQ1, Q2: performanceMetricsQ2, YTD: performanceMetricsYTD };
+
+const PERIOD_LABEL: Record<Period, string> = {
+  Q1:  "Q1 2026 · 28 Jan – 31 Mar",
+  Q2:  "Q2 2026 · 1 Apr – 17 Apr",
+  YTD: "YTD 2026 · 28 Jan – 17 Apr",
+};
+
+export const BenchmarkComparison = ({ period = "Q1" }: BenchmarkComparisonProps) => {
+  const metrics = metricsMap[period];
+  const data    = buildData(metrics.roi, metrics.sharpeRatioAnnualized, period);
+  const returnData = data.map(({ name, return: value, type }) => ({ name, value, type }));
+  const sharpeData = data.map(({ name, sharpe: value, type }) => ({ name, value, type }));
+  const tooltipStyle = {
+    backgroundColor: "hsl(var(--card))",
+    border: "1px solid hsl(var(--border))",
+    borderRadius: "8px",
+    color: "hsl(var(--foreground))",
+  };
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.4 }}
-    >
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: 0.4 }}>
       <Card className="p-6 bg-card border-border">
-        <h3 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
-          <Scale className="w-6 h-6 text-primary" />
-          Benchmark Comparison
+        <h3 className="text-xl font-bold text-foreground mb-1 flex items-center gap-2">
+          <Scale className="w-5 h-5 text-primary" />
+          Benchmark comparison
         </h3>
-
+        <p className="text-sm text-muted-foreground mb-6">
+          Blue Marvel Capital Apollo vs major indices · {PERIOD_LABEL[period]}
+        </p>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Returns Comparison Chart */}
           <div>
-            <h4 className="text-sm font-medium text-muted-foreground mb-4 uppercase tracking-wide">
-              Return Comparison (%)
-            </h4>
+            <h4 className="text-xs font-medium text-muted-foreground mb-4 uppercase tracking-wide">Return comparison (%)</h4>
             <div className="h-[280px]">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={returnComparisonData} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={true} vertical={false} />
-                  <XAxis type="number" stroke="hsl(var(--muted-foreground))" fontSize={12} tickFormatter={(value) => `${value}%`} />
-                  <YAxis type="category" dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={11} width={90} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "hsl(var(--card))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "8px",
-                    }}
-                    formatter={(value: number) => [`${value.toFixed(2)}%`, "Return"]}
-                  />
-                  <Bar dataKey="value" radius={[0, 4, 4, 0]}>
-                    {returnComparisonData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={getBarColor(entry.type)} />
-                    ))}
+                <BarChart data={returnData} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal vertical={false} />
+                  <XAxis type="number" stroke="hsl(var(--muted-foreground))" fontSize={11} tickFormatter={(v) => `${v}%`} />
+                  <YAxis type="category" dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={11} width={100} />
+                  <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [`${v.toFixed(2)}%`, "Return"]} />
+                  <Bar dataKey="value" radius={[0, 4, 4, 0]} isAnimationActive animationDuration={800}>
+                    {returnData.map((e, i) => <Cell key={i} fill={barColor(e.type)} />)}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
-
-          {/* Sharpe Ratio Comparison Chart */}
           <div>
-            <h4 className="text-sm font-medium text-muted-foreground mb-4 uppercase tracking-wide">
-              Sharpe Ratio Comparison
-            </h4>
+            <h4 className="text-xs font-medium text-muted-foreground mb-4 uppercase tracking-wide">Sharpe ratio comparison</h4>
             <div className="h-[280px]">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={sharpeComparisonData} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={true} vertical={false} />
-                  <XAxis type="number" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                  <YAxis type="category" dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={11} width={90} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "hsl(var(--card))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "8px",
-                    }}
-                    formatter={(value: number) => [value.toFixed(2), "Sharpe Ratio"]}
-                  />
-                  <Bar dataKey="value" radius={[0, 4, 4, 0]}>
-                    {sharpeComparisonData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={getBarColor(entry.type)} />
-                    ))}
+                <BarChart data={sharpeData} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal vertical={false} />
+                  <XAxis type="number" stroke="hsl(var(--muted-foreground))" fontSize={11} />
+                  <YAxis type="category" dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={11} width={100} />
+                  <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [v.toFixed(2), "Sharpe ratio"]} />
+                  <Bar dataKey="value" radius={[0, 4, 4, 0]} isAnimationActive animationDuration={800} animationBegin={150}>
+                    {sharpeData.map((e, i) => <Cell key={i} fill={barColor(e.type)} />)}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
         </div>
-
-        {/* Legend: placed directly under the charts */}
-        <div className="flex flex-wrap gap-4 mt-6 pt-4 border-t border-border" aria-label="Chart legend">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-primary" />
-            <span className="text-xs text-muted-foreground">BMC Portfolio</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-chart-2" />
-            <span className="text-xs text-muted-foreground">Market Benchmarks</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-muted-foreground" />
-            <span className="text-xs text-muted-foreground">Risk-Free Rate</span>
-          </div>
+        <div className="flex flex-wrap gap-4 mt-6 pt-4 border-t border-border">
+          {[
+            { color: "bg-primary",          label: "BMC Apollo"         },
+            { color: "bg-chart-2",          label: "Market benchmarks"  },
+            { color: "bg-muted-foreground", label: "Risk-free rate"     },
+          ].map(({ color, label }) => (
+            <div key={label} className="flex items-center gap-2">
+              <div className={`w-2.5 h-2.5 rounded-full ${color}`} />
+              <span className="text-xs text-muted-foreground">{label}</span>
+            </div>
+          ))}
         </div>
-
-        {/* Performance vs Benchmarks Table */}
         <div className="mt-8 pt-6 border-t border-border">
-          <h4 className="text-sm font-medium text-muted-foreground mb-4 uppercase tracking-wide">
-            BMC Outperformance vs Benchmarks
-          </h4>
+          <h4 className="text-xs font-medium text-muted-foreground mb-4 uppercase tracking-wide">BMC vs benchmarks</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-secondary/30 rounded-lg p-4">
-              <h5 className="text-sm font-semibold text-foreground mb-3">Return Advantage</h5>
-              <ComparisonRow name="vs S&P 500" portfolioValue={performanceMetrics.roi} benchmarkValue={12.5} unit="%" />
-              <ComparisonRow name="vs NASDAQ" portfolioValue={performanceMetrics.roi} benchmarkValue={15.2} unit="%" />
-              <ComparisonRow name="vs Hedge Fund Avg" portfolioValue={performanceMetrics.roi} benchmarkValue={8.5} unit="%" />
+              <h5 className="text-sm font-semibold text-foreground mb-3">Return difference</h5>
+              <ComparisonRow name="vs S&P 500"        portfolioValue={metrics.roi} benchmarkValue={12.5} unit="%" index={0} />
+              <ComparisonRow name="vs NASDAQ"         portfolioValue={metrics.roi} benchmarkValue={15.2} unit="%" index={1} />
+              <ComparisonRow name="vs Hedge Fund avg" portfolioValue={metrics.roi} benchmarkValue={8.5}  unit="%" index={2} />
             </div>
             <div className="bg-secondary/30 rounded-lg p-4">
-              <h5 className="text-sm font-semibold text-foreground mb-3">Risk-Adjusted Advantage</h5>
-              <ComparisonRow name="vs S&P 500" portfolioValue={performanceMetrics.sharpeRatioAnnualized} benchmarkValue={0.9} unit="" />
-              <ComparisonRow name="vs NASDAQ" portfolioValue={performanceMetrics.sharpeRatioAnnualized} benchmarkValue={0.85} unit="" />
-              <ComparisonRow name="vs Hedge Fund Avg" portfolioValue={performanceMetrics.sharpeRatioAnnualized} benchmarkValue={1.2} unit="" />
+              <h5 className="text-sm font-semibold text-foreground mb-3">Risk-adjusted difference</h5>
+              <ComparisonRow name="vs S&P 500"        portfolioValue={metrics.sharpeRatioAnnualized} benchmarkValue={0.90} unit="" index={0} />
+              <ComparisonRow name="vs NASDAQ"         portfolioValue={metrics.sharpeRatioAnnualized} benchmarkValue={0.85} unit="" index={1} />
+              <ComparisonRow name="vs Hedge Fund avg" portfolioValue={metrics.sharpeRatioAnnualized} benchmarkValue={1.20} unit="" index={2} />
             </div>
           </div>
         </div>
-
       </Card>
     </motion.div>
   );

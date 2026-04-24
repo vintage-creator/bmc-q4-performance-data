@@ -8,55 +8,58 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Cell,
   PieChart,
   Pie,
+  Cell,
   Legend,
 } from "recharts";
-import { tradeStatistics } from "@/data/tradingData";
+import {
+  tradeStatisticsQ1,
+  tradeStatisticsQ2,
+  tradeStatisticsYTD,
+} from "@/data/tradingData";
+import { Period, PERIOD_LABELS } from "@/lib/types";
 
-export const TradeDistribution = () => {
+interface TradeDistributionProps {
+  period?: Period;
+}
+
+export const TradeDistribution = ({ period = "Q1" }: TradeDistributionProps) => {
+  const stats =
+    period === "Q1"
+      ? tradeStatisticsQ1
+      : period === "Q2"
+        ? tradeStatisticsQ2
+        : tradeStatisticsYTD;
+
   const distributionData = [
-    {
-      name: "Win Trades",
-      value: tradeStatistics.profitTrades,
-      color: "hsl(var(--success))",
-    },
-    {
-      name: "Loss Trades",
-      value: tradeStatistics.lossTrades,
-      color: "hsl(var(--destructive))",
-    },
+    { name: "Win trades", value: stats.profitTrades, color: "hsl(var(--success))" },
+    { name: "Loss trades", value: stats.lossTrades, color: "hsl(var(--destructive))" },
   ];
 
   const positionData = [
+    ...(stats.shortPositions > 0
+      ? [
+          {
+            name: "Short",
+            wins: Math.round((stats.shortPositions * stats.shortWinRate) / 100),
+            losses: stats.shortPositions - Math.round((stats.shortPositions * stats.shortWinRate) / 100),
+          },
+        ]
+      : []),
     {
-      name: "Short Positions",
-      total: tradeStatistics.shortPositions,
-      winRate: tradeStatistics.shortWinRate,
-      wins: Math.round(
-        (tradeStatistics.shortPositions * tradeStatistics.shortWinRate) / 100
-      ),
-      losses:
-        tradeStatistics.shortPositions -
-        Math.round(
-          (tradeStatistics.shortPositions * tradeStatistics.shortWinRate) / 100
-        ),
-    },
-    {
-      name: "Long Positions",
-      total: tradeStatistics.longPositions,
-      winRate: tradeStatistics.longWinRate,
-      wins: Math.round(
-        (tradeStatistics.longPositions * tradeStatistics.longWinRate) / 100
-      ),
-      losses:
-        tradeStatistics.longPositions -
-        Math.round(
-          (tradeStatistics.longPositions * tradeStatistics.longWinRate) / 100
-        ),
+      name: "Long",
+      wins: Math.round((stats.longPositions * stats.longWinRate) / 100),
+      losses: stats.longPositions - Math.round((stats.longPositions * stats.longWinRate) / 100),
     },
   ];
+
+  const tooltipStyle = {
+    backgroundColor: "hsl(var(--card))",
+    border: "1px solid hsl(var(--border))",
+    borderRadius: "8px",
+    color: "hsl(var(--foreground))",
+  };
 
   return (
     <motion.div
@@ -65,136 +68,104 @@ export const TradeDistribution = () => {
       transition={{ duration: 0.5, delay: 0.4 }}
       className="grid grid-cols-1 lg:grid-cols-2 gap-6"
     >
-      {/* Pie Chart */}
       <Card className="p-4 md:p-6 bg-card border-border">
-        <h3 className="text-lg md:text-xl font-bold text-foreground mb-4 md:mb-6">
-          Win/Loss Distribution
+        <h3 className="text-lg md:text-xl font-bold text-foreground mb-1">
+          Win / loss distribution
         </h3>
+        <p className="text-sm text-muted-foreground mb-4">
+          {stats.totalTrades} closed trades · {PERIOD_LABELS[period]}
+        </p>
 
-        {/* Ensures the chart always has height with proper padding */}
-        <div className="w-full h-[320px] md:h-[350px]">
+        <div className="w-full h-[300px] md:h-[320px]">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
               <Pie
                 data={distributionData}
                 cx="50%"
                 cy="45%"
-                labelLine={{
-                  stroke: "hsl(var(--muted-foreground))",
-                  strokeWidth: 1,
-                }}
-                label={({ cx, cy, midAngle, innerRadius, outerRadius, value, name }) => {
+                outerRadius="55%"
+                dataKey="value"
+                isAnimationActive
+                animationBegin={100}
+                animationDuration={900}
+                labelLine={{ stroke: "hsl(var(--muted-foreground))", strokeWidth: 1 }}
+                label={({ cx, cy, midAngle, outerRadius, value, name }) => {
                   const RADIAN = Math.PI / 180;
-                  const radius = outerRadius + 25;
-                  const x = cx + radius * Math.cos(-midAngle * RADIAN);
-                  const y = cy + radius * Math.sin(-midAngle * RADIAN);
-                  
+                  const r = outerRadius + 28;
+                  const x = cx + r * Math.cos(-midAngle * RADIAN);
+                  const y = cy + r * Math.sin(-midAngle * RADIAN);
                   return (
                     <text
                       x={x}
                       y={y}
                       fill="hsl(var(--foreground))"
-                      textAnchor={x > cx ? 'start' : 'end'}
+                      textAnchor={x > cx ? "start" : "end"}
                       dominantBaseline="central"
-                      className="text-xs md:text-sm font-medium"
+                      fontSize={12}
+                      fontWeight={500}
                     >
-                      {`${name}: ${value}`}
+                      {name}: {value}
                     </text>
                   );
                 }}
-                outerRadius="55%"
-                dataKey="value"
               >
-                {distributionData.map((entry, index) => (
-                  <Cell key={index} fill={entry.color} />
+                {distributionData.map((entry, i) => (
+                  <Cell key={i} fill={entry.color} />
                 ))}
               </Pie>
-              <Legend 
+              <Legend
                 verticalAlign="bottom"
                 height={36}
                 iconType="circle"
-                wrapperStyle={{
-                  paddingTop: '10px',
-                  fontSize: '12px',
-                }}
+                wrapperStyle={{ paddingTop: "12px", fontSize: "12px" }}
               />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "8px",
-                  color: "hsl(var(--foreground))",
-                }}
-              />
+              <Tooltip contentStyle={tooltipStyle} />
             </PieChart>
           </ResponsiveContainer>
         </div>
       </Card>
 
-      {/* Bar Chart */}
       <Card className="p-4 md:p-6 bg-card border-border">
-        <h3 className="text-lg md:text-xl font-bold text-foreground mb-4 md:mb-6">
-          Position Type Performance
+        <h3 className="text-lg md:text-xl font-bold text-foreground mb-1">
+          Position type performance
         </h3>
+        <p className="text-sm text-muted-foreground mb-4">
+          Win / loss by direction · {PERIOD_LABELS[period]}
+        </p>
 
-        <div className="w-full h-[320px] md:h-[350px]">
+        <div className="w-full h-[300px] md:h-[320px]">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart 
-              data={positionData}
-              margin={{ top: 10, right: 10, bottom: 20, left: 0 }}
-            >
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="hsl(var(--border))"
-                opacity={0.3}
-              />
-
-              <XAxis
-                dataKey="name"
-                stroke="hsl(var(--muted-foreground))"
-                style={{ fontSize: "11px" }}
-                tick={{ fill: "hsl(var(--muted-foreground))" }}
-                angle={0}
-                textAnchor="middle"
-              />
-
-              <YAxis
-                stroke="hsl(var(--muted-foreground))"
-                style={{ fontSize: "11px" }}
-                tick={{ fill: "hsl(var(--muted-foreground))" }}
-                width={40}
-              />
-
+            <BarChart data={positionData} margin={{ top: 10, right: 10, bottom: 20, left: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+              <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" style={{ fontSize: "11px" }} />
+              <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "11px" }} width={36} />
               <Tooltip
-                contentStyle={{
-                  backgroundColor: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "8px",
-                  color: "hsl(var(--foreground))",
-                }}
+                contentStyle={tooltipStyle}
+                formatter={(v: number, name: string) => [v + " trades", name]}
               />
-
               <Legend
                 verticalAlign="bottom"
                 height={36}
                 iconType="rect"
-                wrapperStyle={{
-                  paddingTop: '10px',
-                  fontSize: '12px',
-                }}
+                wrapperStyle={{ paddingTop: "12px", fontSize: "12px" }}
               />
-
               <Bar
                 dataKey="wins"
                 stackId="a"
                 fill="hsl(var(--success))"
                 name="Wins"
+                isAnimationActive
+                animationDuration={800}
               />
               <Bar
                 dataKey="losses"
                 stackId="a"
                 fill="hsl(var(--destructive))"
                 name="Losses"
+                isAnimationActive
+                animationDuration={800}
+                animationBegin={200}
+                radius={[4, 4, 0, 0]}
               />
             </BarChart>
           </ResponsiveContainer>
@@ -203,3 +174,5 @@ export const TradeDistribution = () => {
     </motion.div>
   );
 };
+
+export default TradeDistribution;
