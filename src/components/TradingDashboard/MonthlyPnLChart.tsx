@@ -6,7 +6,7 @@ import {
 } from "recharts";
 import { CalendarDays, TrendingUp, TrendingDown } from "lucide-react";
 import { monthlyPnL, quarterSummaries } from "@/data/tradingData";
-import { Period } from "@/lib/types";
+import { Period, PERIOD_LABELS } from "@/lib/types";
 
 interface MonthlyPnLChartProps {
   period?: Period;
@@ -19,6 +19,7 @@ const fmt = (n: number) =>
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
   const row = payload[0]?.payload;
+
   return (
     <div className="bg-card border border-border rounded-lg p-3 shadow-lg text-xs min-w-[180px]">
       <div className="flex items-center justify-between mb-2">
@@ -27,6 +28,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
           {row?.quarter}
         </span>
       </div>
+
       {payload.map((p: any) => p.value !== 0 && (
         <div key={p.name} className="flex justify-between gap-4 mb-1">
           <span className="text-muted-foreground flex items-center gap-1.5">
@@ -38,6 +40,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
           </span>
         </div>
       ))}
+
       <div className="border-t border-border mt-2 pt-2 space-y-1">
         <div className="flex justify-between">
           <span className="text-muted-foreground">Gross</span>
@@ -57,9 +60,9 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   );
 };
 
-// Quarter summary card shown in the breakdown panel
 const QuarterCard = ({ q, index }: { q: typeof quarterSummaries[0]; index: number }) => {
   const positive = q.netTotal >= 0;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -79,7 +82,9 @@ const QuarterCard = ({ q, index }: { q: typeof quarterSummaries[0]; index: numbe
           {fmt(q.netTotal)}
         </div>
       </div>
-      <p className="text-xs text-muted-foreground">{q.dateRange} · {q.trades} closed trades</p>
+      <p className="text-xs text-muted-foreground">
+        {q.dateRange} · {q.trades} closed trades
+      </p>
       {q.note && (
         <p className="text-xs text-muted-foreground italic border-t border-border/50 pt-2 mt-1">
           {q.note}
@@ -89,22 +94,30 @@ const QuarterCard = ({ q, index }: { q: typeof quarterSummaries[0]; index: numbe
   );
 };
 
-export const MonthlyPnLChart = ({ period = "QTD" }: MonthlyPnLChartProps) => {
-  // QTD: Q2 months only (Apr) · YTD: all active months across both quarters
+export const MonthlyPnLChart = ({ period = "YTD" }: MonthlyPnLChartProps) => {
   const chartData =
-    period === "QTD"
-      ? monthlyPnL.filter((r) => r.quarter === "Q2")
-      : monthlyPnL.filter((r) => r.trades > 0);
+    period === "Q1"
+      ? monthlyPnL.filter((r) => r.quarter === "Q1")
+      : period === "Q2"
+        ? monthlyPnL.filter((r) => r.quarter === "Q2")
+        : monthlyPnL.filter((r) => r.trades > 0);
 
-  // For YTD we show the quarter breakdown panel; QTD shows just Q2 context
   const quartersToShow =
-    period === "QTD"
-      ? quarterSummaries.filter((q) => q.quarter === "Q2")
-      : quarterSummaries;
+    period === "YTD"
+      ? quarterSummaries
+      : quarterSummaries.filter((q) => q.quarter === period);
 
-  const totalCocoa  = chartData.reduce((a, r) => a + r.cocoa, 0);
+  const totalCocoa = chartData.reduce((a, r) => a + r.cocoa, 0);
   const totalEurjpy = chartData.reduce((a, r) => a + r.eurjpy, 0);
-  const totalNet    = chartData.reduce((a, r) => a + r.netTotal, 0);
+  const totalNet = chartData.reduce((a, r) => a + r.netTotal, 0);
+
+  const headerText = PERIOD_LABELS[period];
+  const descriptionText =
+    period === "Q1"
+      ? "Q1 gross P/L per instrument"
+      : period === "Q2"
+        ? "Q2 gross P/L per instrument"
+        : "Year-to-date gross P/L per instrument, broken down by quarter";
 
   return (
     <motion.div
@@ -113,23 +126,20 @@ export const MonthlyPnLChart = ({ period = "QTD" }: MonthlyPnLChartProps) => {
       transition={{ duration: 0.45, delay: 0.25 }}
     >
       <Card className="p-6 bg-card border-border">
-        {/* Header */}
         <div className="flex items-start justify-between mb-1 flex-wrap gap-2">
           <div className="flex items-center gap-2">
             <CalendarDays className="w-5 h-5 text-primary" />
             <h3 className="text-xl font-bold text-foreground">Monthly P&amp;L by instrument</h3>
           </div>
           <span className="text-xs text-muted-foreground bg-secondary px-2 py-1 rounded border border-border">
-            {period === "QTD" ? "Q2 2026 · 1 Apr – 20 Apr" : "Q1 + Q2 2026 · full history"}
+            {headerText}
           </span>
         </div>
+
         <p className="text-sm text-muted-foreground mb-5">
-          {period === "QTD"
-            ? "Current quarter (Q2) gross P/L per instrument"
-            : "Year-to-date gross P/L per instrument, broken down by quarter"}
+          {descriptionText}
         </p>
 
-        {/* Quarter breakdown panel — only meaningful for YTD */}
         <AnimatePresence>
           {quartersToShow.length > 0 && (
             <motion.div
@@ -146,15 +156,16 @@ export const MonthlyPnLChart = ({ period = "QTD" }: MonthlyPnLChartProps) => {
           )}
         </AnimatePresence>
 
-        {/* Summary chips */}
         <div className="flex flex-wrap gap-3 mb-5">
           {[
-            { label: "Cocoa",     value: totalCocoa,  color: "#BA7517" },
-            { label: "EUR/JPY",   value: totalEurjpy, color: "#0F6E56" },
-            { label: "Net total", value: totalNet,    color: undefined  },
+            { label: "Cocoa", value: totalCocoa, color: "#BA7517" },
+            { label: "EUR/JPY", value: totalEurjpy, color: "#0F6E56" },
+            { label: "Net total", value: totalNet, color: undefined },
           ].map(({ label, value, color }) => (
-            <div key={label}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-secondary border border-border text-sm">
+            <div
+              key={label}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-secondary border border-border text-sm"
+            >
               {color && <span className="w-2.5 h-2.5 rounded-sm inline-block" style={{ background: color }} />}
               <span className="text-muted-foreground">{label}:</span>
               <span className="font-semibold" style={{ color: value >= 0 ? "#0F6E56" : "#993C1D" }}>
@@ -164,32 +175,58 @@ export const MonthlyPnLChart = ({ period = "QTD" }: MonthlyPnLChartProps) => {
           ))}
         </div>
 
-        {/* Bar chart */}
         <div className="w-full h-[260px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 5 }} barGap={4}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.25} vertical={false} />
               <ReferenceLine y={0} stroke="hsl(var(--border))" strokeWidth={1} />
-              <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))"
-                style={{ fontSize: "11px" }} tick={{ dy: 5 }} />
-              <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: "11px" }}
-                tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} width={52} />
+              <XAxis
+                dataKey="month"
+                stroke="hsl(var(--muted-foreground))"
+                style={{ fontSize: "11px" }}
+                tick={{ dy: 5 }}
+              />
+              <YAxis
+                stroke="hsl(var(--muted-foreground))"
+                style={{ fontSize: "11px" }}
+                tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
+                width={52}
+              />
               <Tooltip content={<CustomTooltip />} />
-              <Legend verticalAlign="top" align="right" iconType="square" iconSize={10}
-                wrapperStyle={{ fontSize: "12px", paddingBottom: "8px" }} />
-              <Bar dataKey="cocoa"  name="Cocoa"   fill="#BA7517" radius={[3,3,0,0]}
-                isAnimationActive animationDuration={900} />
-              <Bar dataKey="eurjpy" name="EUR/JPY" fill="#0F6E56" radius={[3,3,0,0]}
-                isAnimationActive animationDuration={900} animationBegin={150} />
+              <Legend
+                verticalAlign="top"
+                align="right"
+                iconType="square"
+                iconSize={10}
+                wrapperStyle={{ fontSize: "12px", paddingBottom: "8px" }}
+              />
+              <Bar
+                dataKey="cocoa"
+                name="Cocoa"
+                fill="#BA7517"
+                radius={[3, 3, 0, 0]}
+                isAnimationActive
+                animationDuration={900}
+              />
+              <Bar
+                dataKey="eurjpy"
+                name="EUR/JPY"
+                fill="#0F6E56"
+                radius={[3, 3, 0, 0]}
+                isAnimationActive
+                animationDuration={900}
+                animationBegin={150}
+              />
             </BarChart>
           </ResponsiveContainer>
         </div>
 
-        {/* Month detail rows with quarter label */}
         <div className="mt-4 pt-4 border-t border-border space-y-1">
           {chartData.map((row, i) => (
-            <motion.div key={row.month}
-              initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
+            <motion.div
+              key={row.month}
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.25, delay: 0.4 + i * 0.06 }}
               className="flex items-center justify-between text-sm py-1.5 border-b border-border/30 last:border-0"
             >
@@ -202,12 +239,12 @@ export const MonthlyPnLChart = ({ period = "QTD" }: MonthlyPnLChartProps) => {
               <span className="text-muted-foreground text-xs">{row.trades} trades</span>
               <div className="flex items-center gap-3 text-xs">
                 <span className="text-muted-foreground">
-                  gross: <span style={{ color: row.total >= 0 ? "#0F6E56" : "#993C1D" }}>
+                  gross:{" "}
+                  <span style={{ color: row.total >= 0 ? "#0F6E56" : "#993C1D" }}>
                     {fmt(row.total)}
                   </span>
                 </span>
-                <span className="font-semibold"
-                  style={{ color: row.netTotal >= 0 ? "#0F6E56" : "#993C1D" }}>
+                <span className="font-semibold" style={{ color: row.netTotal >= 0 ? "#0F6E56" : "#993C1D" }}>
                   net: {fmt(row.netTotal)}
                 </span>
               </div>

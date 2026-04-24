@@ -12,7 +12,8 @@ import { Period, PERIOD_LABELS } from "@/lib/types";
 interface TradeHistoryProps { period?: Period; }
 
 const PERIOD_RANGES: Record<Period, { start: Date; end: Date }> = {
-  QTD: { start: new Date("2026-04-01T00:00:00"), end: new Date("2026-04-20T23:59:59") },
+  Q1:  { start: new Date("2026-01-28T00:00:00"), end: new Date("2026-03-31T23:59:59") },
+  Q2:  { start: new Date("2026-04-01T00:00:00"), end: new Date("2026-04-20T23:59:59") },
   YTD: { start: new Date("2026-01-28T00:00:00"), end: new Date("2026-04-20T23:59:59") },
 };
 
@@ -24,7 +25,13 @@ const filterByPeriod = (all: Trade[], period: Period) => {
   });
 };
 
-export const TradeHistory = ({ period = "QTD" }: TradeHistoryProps) => {
+const PERIOD_DATE_LABEL: Record<Period, string> = {
+  Q1:  "Q1 2026 · 28 Jan – 31 Mar",
+  Q2:  "Q2 2026 · 1 Apr – 20 Apr",
+  YTD: "Q1 + Q2 2026 · 28 Jan – 20 Apr",
+};
+
+export const TradeHistory = ({ period = "Q1" }: TradeHistoryProps) => {
   const [search, setSearch]             = useState("");
   const [filterType, setFilterType]     = useState<"all" | "buy" | "sell">("all");
   const [filterResult, setFilterResult] = useState<"all" | "profit" | "loss">("all");
@@ -42,7 +49,6 @@ export const TradeHistory = ({ period = "QTD" }: TradeHistoryProps) => {
   const grossPnl = filtered.reduce((a, t) => a + t.profit, 0);
   const netPnl   = filtered.reduce((a, t) => a + t.profit + t.commission, 0);
   const fmt = (n: number) => n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const periodLabel = period === "QTD" ? "Q2 2026 · 1 Apr – 20 Apr" : "Q1 + Q2 2026 · 28 Jan – 20 Apr";
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.5 }}>
@@ -50,7 +56,7 @@ export const TradeHistory = ({ period = "QTD" }: TradeHistoryProps) => {
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-4">
           <div>
             <h3 className="text-xl font-bold text-foreground">Trade history</h3>
-            <p className="text-sm text-muted-foreground mt-0.5">{periodLabel} · closed positions</p>
+            <p className="text-sm text-muted-foreground mt-0.5">{PERIOD_DATE_LABEL[period]} · closed positions</p>
           </div>
           <div className="flex flex-wrap gap-3 text-sm">
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-secondary border border-border">

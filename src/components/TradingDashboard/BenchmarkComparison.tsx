@@ -5,20 +5,29 @@ import {
   Tooltip, ResponsiveContainer, Cell,
 } from "recharts";
 import { Scale, TrendingUp, TrendingDown } from "lucide-react";
-import { performanceMetricsQTD, performanceMetricsYTD } from "@/data/tradingData";
+import { performanceMetricsQ1, performanceMetricsQ2, performanceMetricsYTD } from "@/data/tradingData";
 import { Period } from "@/lib/types";
 
-interface BenchmarkComparisonProps {
-  period?: Period;
-}
+interface BenchmarkComparisonProps { period?: Period; }
 
-const buildData = (roi: number, sharpe: number) => [
-  { name: "BMC Apollo",      return: roi,   sharpe,  type: "portfolio" },
-  { name: "S&P 500",         return: 12.5,  sharpe: 0.90, type: "benchmark" },
-  { name: "NASDAQ",          return: 15.2,  sharpe: 0.85, type: "benchmark" },
-  { name: "US T-Bill",       return: 4.0,   sharpe: 0,    type: "riskfree"  },
-  { name: "Hedge Fund Avg",  return: 8.5,   sharpe: 1.20, type: "benchmark" },
-];
+// Risk-free rate by period: 1% for Q1/Q2, 2% for YTD
+const getRiskFreeReturn = (period: Period): number => {
+  if (period === "YTD") return 2;
+  if (period === "Q1" || period === "Q2") return 1;
+  console.warn(`Unknown period "${period}", defaulting to 1%`);
+  return 1;
+};
+
+const buildData = (roi: number, sharpe: number, period: Period) => {
+  const riskFreeReturn = getRiskFreeReturn(period);
+  return [
+    { name: "BMC Apollo",      return: roi,   sharpe,  type: "portfolio" },
+    { name: "S&P 500",         return: 12.5,  sharpe: 0.90, type: "benchmark" },
+    { name: "NASDAQ",          return: 15.2,  sharpe: 0.85, type: "benchmark" },
+    { name: "US T-Bill",       return: riskFreeReturn, sharpe: 0, type: "riskfree" },
+    { name: "Hedge Fund Avg",  return: 8.5,   sharpe: 1.20, type: "benchmark" },
+  ];
+};
 
 const barColor = (type: string) => {
   if (type === "portfolio") return "hsl(var(--primary))";
@@ -53,9 +62,17 @@ const ComparisonRow = ({ name, portfolioValue, benchmarkValue, unit, index }: Co
   );
 };
 
-export const BenchmarkComparison = ({ period = "QTD" }: BenchmarkComparisonProps) => {
-  const metrics = period === "QTD" ? performanceMetricsQTD : performanceMetricsYTD;
-  const data    = buildData(metrics.roi, metrics.sharpeRatioAnnualized);
+const metricsMap = { Q1: performanceMetricsQ1, Q2: performanceMetricsQ2, YTD: performanceMetricsYTD };
+
+const PERIOD_LABEL: Record<Period, string> = {
+  Q1:  "Q1 2026 · 28 Jan – 31 Mar",
+  Q2:  "Q2 2026 · 1 Apr – 17 Apr",
+  YTD: "YTD 2026 · 28 Jan – 17 Apr",
+};
+
+export const BenchmarkComparison = ({ period = "Q1" }: BenchmarkComparisonProps) => {
+  const metrics = metricsMap[period];
+  const data    = buildData(metrics.roi, metrics.sharpeRatioAnnualized, period);
   const returnData = data.map(({ name, return: value, type }) => ({ name, value, type }));
   const sharpeData = data.map(({ name, sharpe: value, type }) => ({ name, value, type }));
   const tooltipStyle = {
@@ -74,7 +91,7 @@ export const BenchmarkComparison = ({ period = "QTD" }: BenchmarkComparisonProps
           Benchmark comparison
         </h3>
         <p className="text-sm text-muted-foreground mb-6">
-          Blue Marvel Capital Apollo vs major indices · {period === "QTD" ? "Q2 2026 to date" : "YTD 2026"}
+          Blue Marvel Capital Apollo vs major indices · {PERIOD_LABEL[period]}
         </p>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div>

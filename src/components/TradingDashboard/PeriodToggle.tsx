@@ -33,24 +33,35 @@ export const PeriodToggle = ({ selectedPeriod, onToggle }: PeriodToggleProps) =>
             <p className="font-semibold text-foreground">Performance period selection</p>
 
             <div className="space-y-1">
-              <p className="font-medium text-primary">QTD — Quarter-to-date</p>
-              <p className="text-muted-foreground">Current quarter activity only: 1 Apr – 20 Apr 2026</p>
+              <p className="font-medium text-primary">Q1 — Quarter 1</p>
+              <p className="text-muted-foreground">28 Jan – 31 Mar 2026</p>
               <div className="pl-2 border-l-2 border-primary/30 mt-1 space-y-0.5">
-                <p className="text-muted-foreground">Q2 2026 · Apr: Cocoa K6 closes + EUR/JPY run</p>
+                <p className="text-muted-foreground">Q1 2026 · Cocoa H6 and early cocoa K6 activity</p>
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <p className="font-medium text-primary">Q2 — Quarter 2</p>
+              <p className="text-muted-foreground">1 Apr – 17 Apr 2026</p>
+              <div className="pl-2 border-l-2 border-primary/30 mt-1 space-y-0.5">
+                <p className="text-muted-foreground">Q2 2026 · Cocoa K6 resolution + EUR/JPY run</p>
               </div>
             </div>
 
             <div className="space-y-1">
               <p className="font-medium text-primary">YTD — Year-to-date</p>
-              <p className="text-muted-foreground">Full account history since inception: 28 Jan – 20 Apr 2026</p>
+              <p className="text-muted-foreground">Full account history since inception: 28 Jan – 17 Apr 2026</p>
               <div className="pl-2 border-l-2 border-primary/30 mt-1 space-y-0.5">
                 <p className="text-muted-foreground flex items-center gap-1">
                   <TrendingDown className="w-3 h-3 text-destructive" />
-                  Q1 (28 Jan – 31 Mar): −$227.20 closed P/L
+                  Q1 (28 Jan – 31 Mar): −$227.20 net P&L
                 </p>
                 <p className="text-muted-foreground flex items-center gap-1">
                   <TrendingUp className="w-3 h-3 text-success" />
-                  Q2 to date (1 Apr – 20 Apr): +$5,389.25
+                  Q2 (1 Apr – 17 Apr): +$5,310.95 net P&L (actual)
+                </p>
+                <p className="text-muted-foreground flex items-center gap-1 mt-1 font-medium">
+                  YTD net P&L (adjusted): +$5,032.92
                 </p>
               </div>
             </div>
@@ -58,9 +69,8 @@ export const PeriodToggle = ({ selectedPeriod, onToggle }: PeriodToggleProps) =>
         </TooltipContent>
       </Tooltip>
 
-      {/* Two-button toggle pill */}
       <div className="relative flex items-center gap-1 bg-secondary rounded-lg p-1 border border-border">
-        {(["QTD", "YTD"] as const).map((p) => (
+        {(["Q1", "Q2", "YTD"] as const).map((p) => (
           <button
             key={p}
             onClick={() => onToggle(p)}
@@ -73,18 +83,19 @@ export const PeriodToggle = ({ selectedPeriod, onToggle }: PeriodToggleProps) =>
                 transition={{ type: "spring", stiffness: 380, damping: 34 }}
               />
             )}
-            <span className={`relative z-10 transition-colors duration-150 ${
-              selectedPeriod === p
-                ? "text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}>
+            <span
+              className={`relative z-10 transition-colors duration-150 ${
+                selectedPeriod === p
+                  ? "text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
               {p}
             </span>
           </button>
         ))}
       </div>
 
-      {/* Animated date badge */}
       <motion.div
         key={selectedPeriod}
         initial={{ opacity: 0, scale: 0.92 }}
@@ -95,9 +106,12 @@ export const PeriodToggle = ({ selectedPeriod, onToggle }: PeriodToggleProps) =>
         <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 font-medium text-xs">
           {PERIOD_LABELS[selectedPeriod]}
         </Badge>
-        {/* Sub-label showing which quarters are included */}
         <span className="text-xs text-muted-foreground hidden sm:inline">
-          {selectedPeriod === "QTD" ? "Q2 2026 · to date" : "Q1 + Q2 2026 · inception to date"}
+          {selectedPeriod === "Q1"
+            ? "Q1 2026 · closed quarter"
+            : selectedPeriod === "Q2"
+              ? "Q2 2026 · to date (17 Apr)"
+              : "Q1 + Q2 2026 · inception to date"}
         </span>
       </motion.div>
     </motion.div>

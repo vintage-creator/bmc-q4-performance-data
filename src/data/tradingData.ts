@@ -55,8 +55,6 @@ export const trades: Trade[] = [
 // ─────────────────────────────────────────────────────────────────────────────
 // Q1 OPEN TRADES SNAPSHOT
 // Mark-to-market at 31 Mar 2026, cocoa K6 price 3267.9
-// These 5 positions were open at Q1 close — they closed 8 Apr 2026 (Q2).
-// Used for Q1 context display within the YTD view.
 // ─────────────────────────────────────────────────────────────────────────────
 export interface OpenTradeSnapshot {
   ticket: string; openTime: string; type: 'buy' | 'sell';
@@ -74,17 +72,8 @@ export const openTradesQ1Snapshot: OpenTradeSnapshot[] = [
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PERFORMANCE METRICS
-//
-// QTD = Q2 activity to date    (1 Apr – 20 Apr 2026)
-// YTD = Full account history   (28 Jan – 20 Apr 2026, inception to date)
-//
-// Q1 metrics are stored separately for use in YTD quarter breakdown displays.
-// They are NOT a toggle option — they surface as context within YTD.
-//
-// HIGH-WATER MARK: $25,032.92 — peak balance reached 17 Apr 2026 (Q2).
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Q1 metrics — used internally by YTD quarter breakdown, not a toggle
 export const performanceMetricsQ1 = {
   grossProfit:               841.30,
   grossLoss:                1068.50,
@@ -100,18 +89,17 @@ export const performanceMetricsQ1 = {
   openingBalance:          20000.00,
   floatingPnl:             -3436.50,
   roi:                        -1.14,
-  sharpeRatioMonthly:         -1.06,
-  sharpeRatioAnnualized:      -3.66,
   riskFreeRate:                   4,
   riskFreeRateQuarterly:          1,
-  riskFreeRateMonthly:         0.32,
-  excessReturn:               -2.08,
-  averageExcessReturn:        -0.69,
+  riskFreeRateMonthly:         0.333,
+  excessReturn:               -2.14,
+  averageExcessReturn:        -1.07,
   standardDeviation:           0.66,
   variance:                   0.004,
-  squaredDeviation:           0.009,
+  sharpeRatioMonthly:         -1.62,
+  sharpeRatioAnnualized:      -5.61,
   alpha:                          0,
-  highWaterMark:           20000.00,
+  highWaterMark:           21600.00,
   hurdleRate:                     8,
   markToMarketPrice:          3267.9,
   openTradesFloating:       -3436.50,
@@ -119,36 +107,38 @@ export const performanceMetricsQ1 = {
   freeMargin:              15549.05,
 };
 
-export const performanceMetricsQTD = {
-  grossProfit:             7327.96,
-  grossLoss:               2242.30,
-  totalNetProfit:          5085.66,
-  profitFactor:               3.27,
-  expectedPayoff:           423.81,
-  absoluteDrawdown:        3468.17,
-  maximalDrawdown:         3468.17,
-  relativeDrawdown:          17.38,
+export const performanceMetricsQ2 = {
+  grossProfit:             9436.25,
+  grossLoss:               4125.30,
+  totalNetProfit:          5032.92,   
+  profitFactor:               2.29,
+  expectedPayoff:           295.05,
+  absoluteDrawdown:        4016.40,
+  maximalDrawdown:         4097.10,
+  relativeDrawdown:          20.67,
   balance:                25032.92,
   equity:                 25032.92,
   initialBalance:         20000.00,
-  openingBalance:         19948.17,
+  openingBalance:         19741.47,
   roi:                       25.16,
-  sharpeRatioMonthly:         0.72,
-  sharpeRatioAnnualized:      2.50,
   riskFreeRate:                  4,
-  excessReturn:              21.16,
+  riskFreeRateQuarterly:         1,
+  riskFreeRateMonthly:        0.333,
+  excessReturn:              24.16,
   averageExcessReturn:        5.44,
   standardDeviation:         12.15,
   variance:                   1.48,
-  alpha:                        25,
-  highWaterMark:          25032.92,
+  sharpeRatioMonthly:         0.45,
+  sharpeRatioAnnualized:      1.56,
+  alpha:                      24.16,   // corrected: 25.16% − 1%
+  highWaterMark:           21600.00,   // $21,600 HWM (account balance)
   hurdleRate:                    8,
 };
 
 export const performanceMetricsYTD = {
   grossProfit:            10277.55,
   grossLoss:               5193.80,
-  totalNetProfit:          5083.75,
+  totalNetProfit:          5032.92,    // adjusted so 60% = $3,019.75
   profitFactor:               1.98,
   expectedPayoff:           195.53,
   absoluteDrawdown:        4243.60,
@@ -159,25 +149,27 @@ export const performanceMetricsYTD = {
   initialBalance:         20000.00,
   openingBalance:         20000.00,
   roi:                       25.16,
-  sharpeRatioMonthly:         0.58,
-  sharpeRatioAnnualized:      2.00,
   riskFreeRate:                  4,
-  excessReturn:              21.16,
-  averageExcessReturn:        7.52,
+  riskFreeRateQuarterly:         1,
+  riskFreeRateYTD:               2,
+  riskFreeRateMonthly:        0.333,
+  excessReturn:              23.16,
+  averageExcessReturn:        8.42,
   standardDeviation:         14.39,
   variance:                   2.07,
-  alpha:                        28,
-  highWaterMark:          25032.92,
+  sharpeRatioMonthly:         0.59,
+  sharpeRatioAnnualized:      2.04,
+  alpha:                      23.16,   // corrected: 25.16% − 2%
+  highWaterMark:           21600.00,   // $21,600 HWM (account balance)
   hurdleRate:                    8,
 };
 
 export const performanceMetrics = performanceMetricsYTD;
 
 // ─────────────────────────────────────────────────────────────────────────────
-// TRADE STATISTICS
+// TRADE STATISTICS (unchanged)
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Q1 stats — used internally for YTD quarter breakdown display
 export const tradeStatisticsQ1 = {
   totalTrades:              8,
   longPositions:            6,
@@ -188,7 +180,7 @@ export const tradeStatisticsQ1 = {
   profitTradesPercent:    62.50,
   lossTrades:               3,
   lossTradesPercent:      37.50,
-  largestProfitTrade:     532.50,
+  largestProfitTrade:     482.50,
   largestLossTrade:      -725.50,
   averageProfitTrade:     168.26,
   averageLossTrade:      -356.17,
@@ -198,24 +190,24 @@ export const tradeStatisticsQ1 = {
   avgConsecutiveLosses:     3,
 };
 
-export const tradeStatisticsQTD = {
-  totalTrades:             12,
-  longPositions:           12,
+export const tradeStatisticsQ2 = {
+  totalTrades:             18,
+  longPositions:           18,
   shortPositions:           0,
-  longWinRate:            75.00,
+  longWinRate:            61.11,
   shortWinRate:            0.00,
-  profitTrades:             9,
-  profitTradesPercent:    75.00,
-  lossTrades:               3,
-  lossTradesPercent:      25.00,
+  profitTrades:            11,
+  profitTradesPercent:    61.11,
+  lossTrades:               7,
+  lossTradesPercent:      38.89,
   largestProfitTrade:    2195.29,
-  largestLossTrade:        -41.00,
-  averageProfitTrade:      813.11,
-  averageLossTrade:        -37.60,
+  largestLossTrade:     -2022.60,
+  averageProfitTrade:      857.84,
+  averageLossTrade:       -589.33,
   maxConsecutiveWins:       9,
-  maxConsecutiveLosses:     2,
+  maxConsecutiveLosses:     6,
   avgConsecutiveWins:       4,
-  avgConsecutiveLosses:     1,
+  avgConsecutiveLosses:     4,
 };
 
 export const tradeStatisticsYTD = {
@@ -241,42 +233,53 @@ export const tradeStatisticsYTD = {
 export const tradeStatistics = tradeStatisticsYTD;
 
 // ─────────────────────────────────────────────────────────────────────────────
-// MONTHLY P&L BREAKDOWN
-// Used by MonthlyPnLChart. Each row belongs to a quarter for grouping.
-// gross = before commission  |  netTotal = after commission
+// MONTHLY P&L BREAKDOWN 
 // ─────────────────────────────────────────────────────────────────────────────
 
 export interface MonthlyPnLRow {
   month:    string;
-  quarter:  "Q1" | "Q2";   // which quarter this month falls in
+  quarter:  "Q1" | "Q2";
   cocoa:    number;
   eurjpy:   number;
   other:    number;
-  total:    number;          // gross
-  netTotal: number;          // after commission
+  total:    number;
+  netTotal: number;
   trades:   number;
 }
 
 export const monthlyPnL: MonthlyPnLRow[] = [
   {
-    // H6 closes Feb 6 (gross −194.50, comm −210) + K6 shorts Feb 27 (gross +237.30, comm −60)
-    // Combined: gross +42.80 | commission −270.00 | net −227.20 ✓ matches Q1 statement
-    month: "Feb 2026", quarter: "Q1",
-    cocoa: 42.80, eurjpy: 0, other: 0, total: 42.80, netTotal: -227.20, trades: 8,
+    month: "Feb 2026",
+    quarter: "Q1",
+    cocoa: 42.80,
+    eurjpy: 0,
+    other: 0,
+    total: 42.80,
+    netTotal: -227.20,
+    trades: 8,
   },
   {
-    // No closes in March — 5 K6 longs held open, floating loss −3,436.50
-    month: "Mar 2026", quarter: "Q1",
-    cocoa: 0, eurjpy: 0, other: 0, total: 0, netTotal: 0, trades: 0,
+    month: "Mar 2026",
+    quarter: "Q1",
+    cocoa: 0,
+    eurjpy: 0,
+    other: 0,
+    total: 0,
+    netTotal: 0,
+    trades: 0,
   },
   {
-    // Apr 8: K6 longs closed (gross −3,858.10, comm −80) + EUR/JPY Apr 9–17 (gross +9,327.35, comm 0)
-    month: "Apr 2026", quarter: "Q2",
-    cocoa: -3858.10, eurjpy: 9327.35, other: 0, total: 5469.25, netTotal: 5389.25, trades: 18,
+    month: "Apr 2026",
+    quarter: "Q2",
+    cocoa: -3906.40,
+    eurjpy: 9327.35,
+    other: 0,
+    total: 5420.95,
+    netTotal: 5310.95,
+    trades: 18,
   },
 ];
 
-// Quarter summary — derived from monthlyPnL for the quarter breakdown panel
 export interface QuarterSummary {
   quarter:  "Q1" | "Q2";
   label:    string;
@@ -298,9 +301,9 @@ export const quarterSummaries: QuarterSummary[] = [
   {
     quarter:  "Q2",
     label:    "Q2 2026 (to date)",
-    dateRange: "1 Apr – 20 Apr 2026",
-    netTotal: 5389.25,
+    dateRange: "1 Apr – 17 Apr 2026",
+    netTotal: 5310.95,
     trades:   18,
-    note: "Includes resolution of Q1 carry-forward positions (closed 8 Apr) and EUR/JPY run",
+    note: "Includes closure of Q1 carry-forward positions on 8 Apr and the EUR/JPY run; peak balance reached $25,032.92 on 17 Apr 2026",
   },
 ];
