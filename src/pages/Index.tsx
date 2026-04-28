@@ -43,7 +43,6 @@ import {
 } from "@/data/tradingData";
 import { Period } from "@/lib/types";
 
-// High-water mark (account balance) – confirmed by trader
 const HIGH_WATER_MARK_ACCOUNT = 21600;
 
 // Date ranges (up to 17 Apr 2026)
@@ -119,15 +118,6 @@ const Index = () => {
     performanceMetrics.roi
   }%`;
 
-  const recipient = "Mr. Farouk Bernaoui";
-  const clientSharePercent = 0.6;
-  const clientShareLabel = `${Math.round(clientSharePercent * 100)}%`;
-
-  const hasProfit = performanceMetrics.totalNetProfit > 0;
-  const clientTakeHome =
-    Math.max(performanceMetrics.totalNetProfit, 0) * clientSharePercent;
-  const takeHomeDisplay = hasProfit ? `$${fmtMoney(clientTakeHome)}` : "$0.00";
-
   const getHwmSubtitle = () => {
     if (activePeriod === "Q1") return "No profit in Q1 · HWM = initial deposit";
     return `Peak account balance · 17 Apr 2026 ($${fmtMoney(HIGH_WATER_MARK_ACCOUNT)})`;
@@ -183,8 +173,8 @@ const Index = () => {
         <div>
           <div className="text-center mb-4">
             <p className="text-muted-foreground">
-              Personalised performance report —{" "}
-              <span className="font-bold text-foreground">{recipient}</span>
+              BMC trading performance report
+              {/* <span className="font-bold text-foreground">{recipient}</span> */}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
               Account #3591662 · {quarterContext}
@@ -267,196 +257,6 @@ const Index = () => {
               trend={roiTrend}
             />
           </div>
-        </section>
-
-        {/* Client take-home summary */}
-        <section>
-          <motion.div
-            initial={{ opacity: 0, y: 18, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-            whileHover={{ y: -3, scale: 1.01 }}
-            className="w-full"
-          >
-            <Card className="relative overflow-hidden border border-emerald-500/25 bg-gradient-to-br from-emerald-500/10 via-card to-card shadow-xl shadow-emerald-500/10">
-              <motion.div
-                className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent"
-                initial={{ x: "-35%" }}
-                animate={{ x: "35%" }}
-                transition={{
-                  duration: 2.4,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              />
-              <motion.div
-                aria-hidden="true"
-                className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-emerald-400/15 blur-3xl"
-                animate={{
-                  scale: [1, 1.08, 1],
-                  opacity: [0.35, 0.55, 0.35],
-                }}
-                transition={{
-                  duration: 3.5,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              />
-              <CardContent className="relative p-6 sm:p-8">
-                <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-                  <div className="max-w-xl">
-                    <div className="flex items-center gap-2 mb-3">
-                      <motion.span
-                        className="h-2.5 w-2.5 rounded-full bg-emerald-500"
-                        animate={{
-                          scale: [1, 1.35, 1],
-                          opacity: [0.7, 1, 0.7],
-                        }}
-                        transition={{
-                          duration: 1.4,
-                          repeat: Infinity,
-                          ease: "easeInOut",
-                        }}
-                      />
-                      <span className="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-600">
-                        Client take-home
-                      </span>
-                      <Badge
-                        variant="secondary"
-                        className="ml-1 border border-emerald-500/20 bg-emerald-500/10 text-emerald-700"
-                      >
-                        {clientShareLabel} share
-                      </Badge>
-                    </div>
-                    <h3 className="text-xl sm:text-2xl font-bold text-foreground">
-                      Estimated client take-home
-                    </h3>
-                    <p className="mt-2 text-sm text-muted-foreground leading-6">
-                      Based on the selected period, this shows the client’s
-                      share of positive net profit after the agreed 60/40 split.
-                    </p>
-                    <div className="mt-5 flex flex-wrap items-center gap-3">
-                      <div className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-700">
-                        Period: {activePeriod}
-                      </div>
-                      <div className="rounded-full border border-border bg-background/60 px-3 py-1 text-xs font-medium text-muted-foreground">
-                        {quarterContext}
-                      </div>
-                    </div>
-                  </div>
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.94, y: 10 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    transition={{ delay: 0.12, duration: 0.35 }}
-                    whileHover={{ scale: 1.02 }}
-                    className="w-full lg:w-[380px]"
-                  >
-                    <div className="relative overflow-hidden rounded-2xl border border-emerald-500/25 bg-gradient-to-br from-emerald-500/15 via-emerald-500/8 to-background p-5 shadow-lg shadow-emerald-500/10">
-                      <motion.div
-                        aria-hidden="true"
-                        className="absolute inset-y-0 left-0 w-1/2 bg-gradient-to-r from-transparent via-white/10 to-transparent"
-                        initial={{ x: "-120%" }}
-                        animate={{ x: "220%" }}
-                        transition={{
-                          duration: 2.8,
-                          repeat: Infinity,
-                          ease: "linear",
-                        }}
-                      />
-                      <div className="relative flex items-start justify-between gap-3">
-                        <div className="flex items-center gap-3">
-                          <motion.div
-                            animate={{
-                              scale: [1, 1.12, 1],
-                              boxShadow: [
-                                "0 0 0 0 rgba(16,185,129,0.18)",
-                                "0 0 0 14px rgba(16,185,129,0)",
-                                "0 0 0 0 rgba(16,185,129,0)",
-                              ],
-                            }}
-                            transition={{
-                              duration: 2.2,
-                              repeat: Infinity,
-                              ease: "easeInOut",
-                            }}
-                            className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/15"
-                          >
-                            <DollarSign className="h-6 w-6 text-emerald-500" />
-                          </motion.div>
-                          <div>
-                            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">
-                              Take-home
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              {recipient}
-                            </p>
-                          </div>
-                        </div>
-                        <span className="text-xs font-medium text-muted-foreground">
-                          {clientShareLabel}
-                        </span>
-                      </div>
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.18, duration: 0.35 }}
-                        className="relative mt-5"
-                      >
-                        <div className="flex items-end gap-2">
-                          <motion.p
-                            initial={{ scale: 0.96, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            transition={{ delay: 0.24, duration: 0.35 }}
-                            className="text-3xl sm:text-4xl font-extrabold tracking-tight text-emerald-600"
-                          >
-                            {takeHomeDisplay}
-                          </motion.p>
-                        </div>
-                        {!hasProfit && (
-                          <p className="text-xs text-muted-foreground mt-2">
-                            No profit generated in this period.
-                          </p>
-                        )}
-                        <div className="mt-4 rounded-xl border border-border/70 bg-background/70 px-4 py-3">
-                          <p className="text-xs text-muted-foreground">
-                            Calculation
-                          </p>
-                          <p className="mt-1 font-mono text-sm text-foreground break-words">
-                            {hasProfit
-                              ? `${pnlDisplay} × ${clientShareLabel} = ${takeHomeDisplay}`
-                              : `${pnlDisplay} (loss) → $0.00 client share`}
-                          </p>
-                        </div>
-                        <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
-                          <span>Share of net profit</span>
-                          <span className="font-semibold text-foreground">
-                            {clientShareLabel}
-                          </span>
-                        </div>
-                        <div className="mt-2 h-2 w-full rounded-full bg-border overflow-hidden">
-                          <motion.div
-                            initial={{ width: 0 }}
-                            animate={{
-                              width: hasProfit
-                                ? `${clientSharePercent * 100}%`
-                                : "0%",
-                            }}
-                            transition={{
-                              duration: 0.9,
-                              ease: "easeOut",
-                              delay: 0.2,
-                            }}
-                            className="h-full rounded-full bg-gradient-to-r from-emerald-500 via-green-500 to-lime-400"
-                          />
-                        </div>
-                      </motion.div>
-                    </div>
-                  </motion.div>
-                  {/* The right-side block showing Total net profit and ROI has been REMOVED as requested */}
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
         </section>
 
         {/* Performance summary */}
