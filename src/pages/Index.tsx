@@ -205,8 +205,8 @@ const Index = () => {
                 <SelectValue placeholder="Select account" />
               </SelectTrigger>
               <SelectContent>
-                {/* <SelectItem value="combined">Combined fund</SelectItem>
-                <SelectItem value="equiti">Equiti (Apollo)</SelectItem> */}
+                <SelectItem value="combined">Combined fund</SelectItem>
+                <SelectItem value="equiti">Equiti (Apollo)</SelectItem>
                 <SelectItem value="atlas">Atlas Prime</SelectItem>
               </SelectContent>
             </Select>
