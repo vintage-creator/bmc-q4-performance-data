@@ -2,11 +2,15 @@ import React, { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
-import { performanceMetricsQ1, performanceMetricsQ2, performanceMetricsYTD } from "@/data/tradingData";
-import { Period } from "@/lib/types";
+import { performanceMetricsQ1, performanceMetricsQ2, performanceMetricsYTD, atlasPerformanceMetrics } from "@/data/tradingData";
+import { Period, AccountFilter } from "@/lib/types";
 
-interface PerformanceChartProps { period?: Period; }
+interface PerformanceChartProps {
+  period?: Period;
+  account?: AccountFilter;
+}
 
+// Equiti data (unchanged)
 const q1Data = [
   { date: "28 Jan", balance: 20000, note: "Account opened · initial deposit (Q1 start)" },
   { date: "6 Feb",  balance: 19786, note: "Cocoa H6 batch closed · −$214 net (Q1)" },
@@ -31,6 +35,15 @@ const ytdData = [
   { date: "17 Apr", balance: 25033, note: "EUR/JPY run complete · new account high (Q2)" },
 ];
 
+// Atlas Prime balance curve
+const atlasData = [
+  { date: "3 Mar",  balance: 4600,  note: "Account opened · $3,500 + $500 + $600 deposits" },
+  { date: "7 Apr",  balance: 4001,  note: "Withdrawal of $599.52 · net deposits $4,000.48" },
+  { date: "9 Apr",  balance: 4001,  note: "EUR/JPY positions accumulating · 6 open" },
+  { date: "13 Apr", balance: 4001,  note: "More EUR/JPY positions added · 10 total" },
+  { date: "17 Apr", balance: 6660,  note: "All 10 positions closed · +$2,659.87 profit" },
+];
+
 const CustomTooltip = ({ active, payload }: any) => {
   if (!active || !payload?.length) return null;
   const d = payload[0].payload;
@@ -44,36 +57,46 @@ const CustomTooltip = ({ active, payload }: any) => {
 };
 
 const metricsMap = { Q1: performanceMetricsQ1, Q2: performanceMetricsQ2, YTD: performanceMetricsYTD };
-const dataMap    = { Q1: q1Data,               Q2: q2Data,               YTD: ytdData };
+const dataMap    = { Q1: q1Data, Q2: q2Data, YTD: ytdData };
 
-// Date ranges ending on 17 Apr 2026 (consistent with tradingData)
 const PERIOD_LABEL: Record<Period, string> = {
   Q1:  "Q1 2026 · 28 Jan – 31 Mar",
   Q2:  "Q2 2026 · 1 Apr – 17 Apr",
   YTD: "Q1 + Q2 2026 · 28 Jan – 17 Apr",
 };
 
-export const PerformanceChart: React.FC<PerformanceChartProps> = ({ period = "Q1" }) => {
-  const metrics = metricsMap[period];
-  const data    = dataMap[period];
+export const PerformanceChart: React.FC<PerformanceChartProps> = ({
+  period = "Q1",
+  account = "equiti",
+}) => {
+  const isAtlas = account === "atlas";
+  const metrics = isAtlas ? atlasPerformanceMetrics : metricsMap[period];
+  const data    = isAtlas ? atlasData : dataMap[period];
+
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [containerWidth, setContainerWidth] = useState(0);
   useEffect(() => {
     if (!containerRef.current) return;
     setContainerWidth(containerRef.current.offsetWidth || 0);
-    const ro = new ResizeObserver((entries) => { for (const e of entries) setContainerWidth(Math.round(e.contentRect.width)); });
+    const ro = new ResizeObserver((entries) => {
+      for (const e of entries) setContainerWidth(Math.round(e.contentRect.width));
+    });
     ro.observe(containerRef.current);
     return () => ro.disconnect();
   }, []);
+
   const balances = data.map((d) => d.balance);
-  const yMin = Math.floor((Math.min(...balances) - 1500) / 1000) * 1000;
-  const yMax = Math.ceil((Math.max(...balances)  + 1500) / 1000) * 1000;
+  const yMin = Math.floor((Math.min(...balances) - 500) / 500) * 500;
+  const yMax = Math.ceil((Math.max(...balances) + 500) / 500) * 500;
   const pnlPositive = metrics.totalNetProfit >= 0;
 
-  // Format Net P&L with sign before dollar sign
   const formattedPnL = pnlPositive
     ? `+$${metrics.totalNetProfit.toLocaleString()}`
     : `-$${Math.abs(metrics.totalNetProfit).toLocaleString()}`;
+
+  const subtitle = isAtlas
+    ? "Atlas Prime #6117251 · 3 Mar – 17 Apr 2026"
+    : `${PERIOD_LABEL[period]} · account #3591662`;
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45, delay: 0.15 }}>
@@ -81,12 +104,16 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({ period = "Q1
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-3">
           <div>
             <h3 className="text-xl font-bold text-foreground">Cumulative balance</h3>
-            <p className="text-sm text-muted-foreground mt-0.5">{PERIOD_LABEL[period]} · account #3591662</p>
+            <p className="text-sm text-muted-foreground mt-0.5">{subtitle}</p>
           </div>
           <div className="flex flex-wrap items-center gap-4 text-sm">
             <div className="flex items-center gap-2">
-              <span className="text-muted-foreground">Deposit:</span>
-              <span className="font-semibold text-foreground">${metrics.initialBalance.toLocaleString()}</span>
+              <span className="text-muted-foreground">
+                {isAtlas ? "Net deposits:" : "Deposit:"}
+              </span>
+              <span className="font-semibold text-foreground">
+                ${metrics.initialBalance.toLocaleString()}
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-muted-foreground">Balance:</span>
@@ -115,9 +142,13 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({ period = "Q1
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.2} />
-                <ReferenceLine y={metrics.initialBalance} stroke="hsl(var(--muted-foreground))"
-                  strokeDasharray="4 4" strokeOpacity={0.5}
-                  label={{ value: "Deposit", position: "insideTopLeft", fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+                <ReferenceLine
+                  y={metrics.initialBalance}
+                  stroke="hsl(var(--muted-foreground))"
+                  strokeDasharray="4 4"
+                  strokeOpacity={0.5}
+                  label={{ value: isAtlas ? "Net deposits" : "Deposit", position: "insideTopLeft", fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                />
                 <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" style={{ fontSize: 11 }} tick={{ dy: 6 }} padding={{ left: 10, right: 10 }} />
                 <YAxis stroke="hsl(var(--muted-foreground))" style={{ fontSize: 11 }}
                   tickFormatter={(v: number) => `$${v.toLocaleString()}`} domain={[yMin, yMax]} width={76} />
@@ -133,21 +164,30 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({ period = "Q1
             </div>
           )}
         </div>
-        {period === "Q1" && (
+        {!isAtlas && period === "Q1" && (
           <p className="text-xs text-muted-foreground mt-3 text-center bg-secondary/50 rounded py-1.5 px-3">
             Q1 close (31 Mar): balance $19,772.80 · 5 open positions carrying −$3,436.50 floating (equity $16,336.30)
           </p>
         )}
-        {period === "YTD" && (
+        {!isAtlas && period === "YTD" && (
           <p className="text-xs text-muted-foreground mt-3 text-center bg-secondary/50 rounded py-1.5 px-3">
             31 Mar Q1 close: balance $19,772.80 · 5 open positions carrying −$3,436.50 floating (equity $16,336.30)
           </p>
         )}
+        {isAtlas && (
+          <p className="text-xs text-muted-foreground mt-3 text-center bg-secondary/50 rounded py-1.5 px-3">
+            All positions held simultaneously · closed in sequence on 17 Apr 2026 · $54.07 swap income included
+          </p>
+        )}
         <p className="text-xs text-muted-foreground mt-3 text-center">
-          Blue Marvel Capital · Apollo · Equiti Brokerage (Seychelles) · ROI: <span className={`font-medium ${metrics.roi >= 0 ? "text-success" : "text-destructive"}`}>{metrics.roi >= 0 ? "+" : ""}{metrics.roi}%</span>
+          Blue Marvel Capital · {isAtlas ? "Atlas Prime" : "Apollo · Equiti Brokerage (Seychelles)"} · ROI:{" "}
+          <span className={`font-medium ${metrics.roi >= 0 ? "text-success" : "text-destructive"}`}>
+            {metrics.roi >= 0 ? "+" : ""}{metrics.roi.toFixed(2)}%
+          </span>
         </p>
       </Card>
     </motion.div>
   );
 };
+
 export default PerformanceChart;

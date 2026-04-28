@@ -1,12 +1,19 @@
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, TooltipProps } from "recharts";
-import { performanceMetricsQ1, performanceMetricsQ2, performanceMetricsYTD } from "@/data/tradingData";
-import { Period } from "@/lib/types";
+import {
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, ReferenceLine, TooltipProps,
+} from "recharts";
+import {
+  performanceMetricsQ1, performanceMetricsQ2, performanceMetricsYTD,
+  atlasPerformanceMetrics,
+} from "@/data/tradingData";
+import { Period, AccountFilter } from "@/lib/types";
 
-interface ROIChartProps { period?: Period; }
+interface ROIChartProps { period?: Period; account?: AccountFilter; }
 interface ROIPoint { date: string; roi: number; balance: number; description: string; }
 
+// Equiti ROI points (unchanged)
 const ytdPoints: ROIPoint[] = [
   { date: "28 Jan", roi:  0.00,  balance: 20000,  description: "Account opened · initial deposit (Q1 start)" },
   { date: "6 Feb",  roi: -1.07,  balance: 19786,  description: "Cocoa H6 batch closed · −$214 net (Q1)" },
@@ -18,17 +25,26 @@ const ytdPoints: ROIPoint[] = [
 ];
 
 const q1Points: ROIPoint[] = [
-  { date: "28 Jan", roi:  0.00,  balance: 20000,  description: "Account opened · initial deposit" },
-  { date: "6 Feb",  roi: -1.07,  balance: 19786,  description: "Cocoa H6 batch closed · −$214 net" },
-  { date: "27 Feb", roi: -1.14,  balance: 19773,  description: "Cocoa K6 shorts closed · +$177 net · Q1 closed P/L −$227.20" },
-  { date: "31 Mar", roi: -1.14,  balance: 19773,  description: "Q1 close · 5 longs open with −$3,437 floating" },
+  { date: "28 Jan", roi:  0.00, balance: 20000, description: "Account opened · initial deposit" },
+  { date: "6 Feb",  roi: -1.07, balance: 19786, description: "Cocoa H6 batch closed · −$214 net" },
+  { date: "27 Feb", roi: -1.14, balance: 19773, description: "Cocoa K6 shorts closed · +$177 net · Q1 closed P/L −$227.20" },
+  { date: "31 Mar", roi: -1.14, balance: 19773, description: "Q1 close · 5 longs open with −$3,437 floating" },
 ];
 
 const q2Points: ROIPoint[] = [
-  { date: "1 Apr",  roi:  0.00,  balance: 19948,  description: "Q2 opening balance" },
-  { date: "8 Apr",  roi: -17.36, balance: 16480,  description: "Q1 carry-forward cocoa longs closed · −$3,468" },
-  { date: "14 Apr", roi:  -4.74, balance: 19010,  description: "EUR/JPY first partial close · +$1,265" },
-  { date: "17 Apr", roi:  25.51, balance: 25033,  description: "EUR/JPY complete · account high" },
+  { date: "1 Apr",  roi:  0.00,  balance: 19948, description: "Q2 opening balance" },
+  { date: "8 Apr",  roi: -17.36, balance: 16480, description: "Q1 carry-forward cocoa longs closed · −$3,468" },
+  { date: "14 Apr", roi:  -4.74, balance: 19010, description: "EUR/JPY first partial close · +$1,265" },
+  { date: "17 Apr", roi:  25.51, balance: 25033, description: "EUR/JPY complete · account high" },
+];
+
+// Atlas ROI points
+// ROI base = $4,000.48 (net deposits after withdrawal)
+const atlasPoints: ROIPoint[] = [
+  { date: "3 Mar",  roi:  0.00,  balance: 4600,  description: "Account opened · deposits: $3,500 + $500 + $600" },
+  { date: "7 Apr",  roi: -14.98, balance: 4001,  description: "Withdrawal $599.52 · net base $4,000.48 · positions accumulating" },
+  { date: "13 Apr", roi:  0.00,  balance: 4001,  description: "10 EUR/JPY positions open · waiting for close" },
+  { date: "17 Apr", roi: 66.49,  balance: 6660,  description: "All 10 EUR/JPY positions closed · +$2,659.87 net profit" },
 ];
 
 const CustomTooltip = ({ active, payload }: TooltipProps<number, string>) => {
@@ -56,7 +72,7 @@ const CustomTooltip = ({ active, payload }: TooltipProps<number, string>) => {
 };
 
 const metricsMap = { Q1: performanceMetricsQ1, Q2: performanceMetricsQ2, YTD: performanceMetricsYTD };
-const dataMap    = { Q1: q1Points,              Q2: q2Points,              YTD: ytdPoints };
+const dataMap    = { Q1: q1Points, Q2: q2Points, YTD: ytdPoints };
 
 const PERIOD_SUBTITLE: Record<Period, string> = {
   Q1:  "Q1 2026 · return on initial deposit",
@@ -64,18 +80,24 @@ const PERIOD_SUBTITLE: Record<Period, string> = {
   YTD: "Q1 + Q2 2026 · return on initial deposit",
 };
 
-export const ROIChart = ({ period = "Q1" }: ROIChartProps) => {
-  const metrics  = metricsMap[period];
-  const data     = dataMap[period];
+export const ROIChart = ({ period = "Q1", account = "equiti" }: ROIChartProps) => {
+  const isAtlas  = account === "atlas";
+  const metrics  = isAtlas ? atlasPerformanceMetrics : metricsMap[period];
+  const data     = isAtlas ? atlasPoints : dataMap[period];
   const finalROI = metrics.roi;
   const positive = finalROI >= 0;
+
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.4 }}>
       <Card className="p-6 bg-card border-border">
         <div className="flex flex-col md:flex-row md:items-start md:justify-between mb-6 gap-3">
           <div>
             <h3 className="text-xl font-bold text-foreground">ROI progression</h3>
-            <p className="text-sm text-muted-foreground mt-0.5">{PERIOD_SUBTITLE[period]}</p>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              {isAtlas
+                ? "Atlas Prime · return on $4,000.48 net deposits"
+                : PERIOD_SUBTITLE[period]}
+            </p>
           </div>
           <motion.div key={finalROI} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3 }} className="flex items-baseline gap-2">
@@ -99,10 +121,12 @@ export const ROIChart = ({ period = "Q1" }: ROIChartProps) => {
           </LineChart>
         </ResponsiveContainer>
         <p className="text-xs text-muted-foreground mt-4 text-center">
-          Blue Marvel Capital · Apollo · Equiti Brokerage (Seychelles) · Initial deposit: ${metrics.initialBalance.toLocaleString()}
+          Blue Marvel Capital · {isAtlas ? "Atlas Prime · FZCO" : "Apollo · Equiti Brokerage (Seychelles)"} ·{" "}
+          {isAtlas ? "Net deposits: $4,000.48" : `Initial deposit: $${metrics.initialBalance.toLocaleString()}`}
         </p>
       </Card>
     </motion.div>
   );
 };
+
 export default ROIChart;

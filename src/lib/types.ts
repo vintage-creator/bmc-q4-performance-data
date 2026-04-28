@@ -1,10 +1,18 @@
 
 export type Period = "Q1" | "Q2" | "YTD";
 
+export type AccountFilter = "combined" | "equiti" | "atlas";
+
 export const PERIOD_LABELS: Record<Period, string> = {
   Q1: "28 Jan – 31 Mar 2026",
   Q2: "1 Apr – 20 Apr 2026",
   YTD: "28 Jan – 20 Apr 2026",
+};
+
+export const ACCOUNT_LABELS: Record<AccountFilter, string> = {
+  combined: "Combined fund · both accounts",
+  equiti:   "Apollo · Equiti (Seychelles) #3591662",
+  atlas:    "Atlas Prime · FZCO #6117251",
 };
 
 export const PERIOD_DESCRIPTIONS: Record<Period, string> = {
