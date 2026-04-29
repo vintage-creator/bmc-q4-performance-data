@@ -51,11 +51,10 @@ import {
 import {
   Period,
   AccountFilter,
-  AccountSelection,
   PERIOD_LABELS,
 } from "@/lib/types";
 
-const ATLAS_REPORT_URL = "https://bmc-2025-q4-trading-data.vercel.app/";
+const ATLAS_REPORT_URL = "https://2025-bmc-q4-trading-data.vercel.app";
 
 const HIGH_WATER_MARK_EQUITI = 21600;
 const HIGH_WATER_MARK_COMBINED = 31693.27;
@@ -78,19 +77,35 @@ const periodRiskFreeRate: Record<Period, number> = {
   YTD: 2,
 };
 
+type YearSelection = "combined" | "atlas";
+type CombinedView = "combined" | "equiti" | "atlas";
+
 const Index = () => {
   const [mode, setMode] = useState<"quarterly" | "ytd">("quarterly");
   const [selectedQuarter, setSelectedQuarter] = useState<"Q1" | "Q2">("Q1");
-  const [accountFilter, setAccountFilter] = useState<AccountSelection>("");
 
-  const resolvedAccount: AccountFilter =
-    accountFilter === "" ? "equiti" : accountFilter;
+  // 2026 is the default visible year and maps to the combined fund view.
+  const [selectedYear, setSelectedYear] = useState<YearSelection>("combined");
+
+  // Within the combined fund page, switch between combined / equiti / atlas.
+  const [combinedView, setCombinedView] = useState<CombinedView>("combined");
 
   const activePeriod: Period = mode === "quarterly" ? selectedQuarter : "YTD";
 
-  // When viewing Atlas or Combined, always use YTD/full period data
+  const handleYearChange = (value: YearSelection) => {
+    if (value === "atlas") {
+      window.location.href = ATLAS_REPORT_URL;
+      return;
+    }
+
+    setSelectedYear("combined");
+    setCombinedView("combined");
+  };
+
+  const displayAccount: AccountFilter = combinedView;
+
   const effectivePeriod: Period =
-    resolvedAccount === "equiti" ? activePeriod : "YTD";
+    displayAccount === "equiti" ? activePeriod : "YTD";
 
   const performanceMetrics = metricsMap[effectivePeriod];
   const tradeStatistics = statsMap[effectivePeriod];
@@ -108,18 +123,8 @@ const Index = () => {
       maximumFractionDigits: 2,
     });
 
-  const handleAccountChange = (value: AccountSelection) => {
-    if (value === "atlas") {
-      window.location.href = ATLAS_REPORT_URL;
-      return;
-    }
-
-    setAccountFilter(value);
-  };
-
-  // ── Derive display values based on account filter ──────────────────────────
   const getDisplayMetrics = () => {
-    if (resolvedAccount === "atlas") {
+    if (displayAccount === "atlas") {
       return {
         initialBalance: atlasPerformanceMetrics.initialBalance,
         balance: atlasPerformanceMetrics.balance,
@@ -134,7 +139,7 @@ const Index = () => {
       };
     }
 
-    if (resolvedAccount === "combined") {
+    if (displayAccount === "combined") {
       return {
         initialBalance: combinedFundMetrics.totalDeposited,
         balance: combinedFundMetrics.totalAUM,
@@ -150,7 +155,6 @@ const Index = () => {
       };
     }
 
-    // equiti
     return {
       initialBalance: performanceMetrics.initialBalance,
       balance: performanceMetrics.balance,
@@ -166,8 +170,8 @@ const Index = () => {
   };
 
   const getDisplayStats = () => {
-    if (resolvedAccount === "atlas") return atlasTradeStatistics;
-    if (resolvedAccount === "combined") return combinedTradeStatistics;
+    if (displayAccount === "atlas") return atlasTradeStatistics;
+    if (displayAccount === "combined") return combinedTradeStatistics;
     return tradeStatistics;
   };
 
@@ -186,22 +190,40 @@ const Index = () => {
   const sharpeTrend = displayMetrics.sharpe >= 0 ? "up" : "down";
 
   const alphaValue =
-    displayMetrics.alpha <= 0 ? "N/A" : `${displayMetrics.alpha.toFixed(2)}%`;
+    displayMetrics.alpha <= 0
+      ? "N/A"
+      : `${displayMetrics.alpha.toFixed(2)}%`;
   const alphaTrend = displayMetrics.alpha > 0 ? "up" : "neutral";
 
   const pnlDisplay = `${displayMetrics.totalNetProfit >= 0 ? "+" : "-"}$${fmtMoney(
     Math.abs(displayMetrics.totalNetProfit)
   )}`;
-  const roiDisplay = `${displayMetrics.roi >= 0 ? "+" : ""}${displayMetrics.roi.toFixed(2)}%`;
+  const roiDisplay = `${displayMetrics.roi >= 0 ? "+" : ""}${displayMetrics.roi.toFixed(
+    2
+  )}%`;
 
   const getHwmSubtitle = () => {
-    if (resolvedAccount === "atlas")
+    if (displayAccount === "atlas")
       return `Atlas Prime peak · 17 Apr 2026 ($${fmtMoney(displayMetrics.hwm)})`;
-    if (resolvedAccount === "combined")
+    if (displayAccount === "combined")
       return `Combined fund peak · 17 Apr 2026 ($${fmtMoney(displayMetrics.hwm)})`;
     if (effectivePeriod === "Q1") return "No profit in Q1 · HWM = initial deposit";
     return `Peak account balance · 17 Apr 2026 ($${fmtMoney(displayMetrics.hwm)})`;
   };
+
+  const pageTitle =
+    displayAccount === "combined"
+      ? "Live Performance Report · Combined Fund"
+      : displayAccount === "equiti"
+      ? "Live Performance Report · Equiti"
+      : "Live Performance Report · Atlas Prime";
+
+  const pageSubtitle =
+    displayAccount === "combined"
+      ? "2026"
+      : displayAccount === "equiti"
+      ? "2026"
+      : "2026";
 
   return (
     <div className="min-h-screen bg-background">
@@ -209,26 +231,27 @@ const Index = () => {
         <div className="container mx-auto flex flex-col items-center justify-between gap-3 px-4 py-4 md:flex-row">
           <div className="text-center md:text-left">
             <h1 className="mt-4 text-2xl font-bold">Blue Marvel Capital</h1>
-            <p className="text-sm text-muted-foreground">
-              Overall Performance Report
-            </p>
+            <p className="text-sm text-muted-foreground">{pageTitle}</p>
           </div>
 
           <div className="flex items-center gap-3">
-            <Select value={accountFilter} onValueChange={handleAccountChange}>
-              <SelectTrigger className="w-[200px]">
-                <Layers className="mr-2 h-4 w-4 text-primary" />
-                <SelectValue placeholder="Select Trading Year" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="equiti">2026</SelectItem>
-                <SelectItem value="atlas">2025</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/10 px-4 py-2">
-              <Lock className="h-4 w-4 text-primary" />
-              <span className="text-sm font-medium text-primary">Proprietary</span>
+            <div className="flex items-center">
+              <span className="mr-4 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Trading Year
+              </span>
+              <Select
+                value={selectedYear}
+                onValueChange={(value) => handleYearChange(value as YearSelection)}
+              >
+                <SelectTrigger className="w-[150px] cursor-pointer">
+                  <Layers className="mr-2 h-4 w-4 text-primary" />
+                  <SelectValue placeholder="Trading Year" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="combined" className="cursor-pointer">2026</SelectItem>
+                  <SelectItem value="atlas" className="cursor-pointer">2025</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>
@@ -244,14 +267,51 @@ const Index = () => {
           </AlertDescription>
         </Alert>
 
-        {resolvedAccount === "combined" && (
+        <div className="mb-4 flex justify-center">
+          <div className="inline-flex rounded-xl border border-border bg-secondary p-1">
+            <button
+              type="button"
+              onClick={() => setCombinedView("combined")}
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                displayAccount === "combined"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Combined fund
+            </button>
+            <button
+              type="button"
+              onClick={() => setCombinedView("equiti")}
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                displayAccount === "equiti"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Equiti
+            </button>
+            <button
+              type="button"
+              onClick={() => setCombinedView("atlas")}
+              className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                displayAccount === "atlas"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Atlas
+            </button>
+          </div>
+        </div>
+
+        {displayAccount === "combined" && (
           <motion.div
             initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25 }}
           >
             <Alert className="border-primary/30 bg-primary/5">
-              <Layers className="h-4 w-4 text-primary" />
               <AlertDescription className="text-sm text-foreground">
                 <strong>Combined fund view:</strong> Aggregates Equiti Brokerage
                 #3591662 (Apollo, $20k deposit) and Atlas Prime #6117251
@@ -264,7 +324,7 @@ const Index = () => {
           </motion.div>
         )}
 
-        {resolvedAccount === "atlas" && (
+        {displayAccount === "atlas" && (
           <motion.div
             initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
@@ -283,7 +343,7 @@ const Index = () => {
           </motion.div>
         )}
 
-        {resolvedAccount === "equiti" && effectivePeriod === "YTD" && (
+        {displayAccount === "equiti" && effectivePeriod === "YTD" && (
           <motion.div
             initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
@@ -307,15 +367,15 @@ const Index = () => {
               BMC Overall Trading Performance Report
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              {resolvedAccount === "equiti"
+              {displayAccount === "equiti"
                 ? `Account #3591662 · ${quarterContext}`
-                : resolvedAccount === "atlas"
+                : displayAccount === "atlas"
                 ? "Account #6117251 · 3 Mar – 17 Apr 2026"
                 : "Combined fund · Equiti #3591662 + Atlas Prime #6117251 · 28 Jan – 17 Apr 2026"}
             </p>
           </div>
 
-          {resolvedAccount === "equiti" && (
+          {displayAccount === "equiti" && (
             <div className="flex flex-wrap items-center justify-center gap-4">
               <div className="flex items-center gap-2 rounded-lg border border-border bg-secondary p-1">
                 <button
@@ -364,7 +424,7 @@ const Index = () => {
           )}
         </div>
 
-        {resolvedAccount === "combined" && (
+        {displayAccount === "combined" && (
           <section>
             <CombinedFundOverview />
           </section>
@@ -374,15 +434,15 @@ const Index = () => {
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             <MetricCard
               title={
-                resolvedAccount === "combined"
+                displayAccount === "combined"
                   ? "Total capital deployed"
                   : "Initial deposit"
               }
               value={`$${fmtMoney(displayMetrics.initialBalance)}`}
               subtitle={
-                resolvedAccount === "combined"
+                displayAccount === "combined"
                   ? "Equiti $20,000 + Atlas $4,000.48"
-                  : resolvedAccount === "atlas"
+                  : displayAccount === "atlas"
                   ? "Net deposits · Mar 2026"
                   : "Capital deployed · Jan 2026"
               }
@@ -390,7 +450,7 @@ const Index = () => {
               trend="neutral"
             />
             <MetricCard
-              title={resolvedAccount === "combined" ? "Total AUM" : "Current balance"}
+              title={displayAccount === "combined" ? "Total AUM" : "Current balance"}
               value={`$${fmtMoney(displayMetrics.balance)}`}
               subtitle={`Net P&L: ${pnlDisplay}`}
               icon={DollarSign}
@@ -400,11 +460,15 @@ const Index = () => {
               title="Total return"
               value={roiDisplay}
               subtitle={
-                resolvedAccount === "combined"
-                  ? `Blended ROI · $${(displayMetrics.initialBalance / 1000).toFixed(1)}k deployed`
-                  : resolvedAccount === "atlas"
+                displayAccount === "combined"
+                  ? `Blended ROI · $${(
+                      displayMetrics.initialBalance / 1000
+                    ).toFixed(1)}k deployed`
+                  : displayAccount === "atlas"
                   ? "On $4,000.48 net deposits"
-                  : `On $${(displayMetrics.initialBalance / 1000).toFixed(0)}k deposit · ${quarterContext}`
+                  : `On $${(displayMetrics.initialBalance / 1000).toFixed(
+                      0
+                    )}k deposit · ${quarterContext}`
               }
               icon={TrendingUp}
               trend={roiTrend}
@@ -422,9 +486,9 @@ const Index = () => {
               title="Total net profit"
               value={pnlDisplay}
               subtitle={
-                resolvedAccount === "combined"
+                displayAccount === "combined"
                   ? "Equiti +$5,032.92 · Atlas +$2,659.87"
-                  : resolvedAccount === "atlas"
+                  : displayAccount === "atlas"
                   ? "3 Mar – 17 Apr 2026"
                   : quarterContext
               }
@@ -436,9 +500,9 @@ const Index = () => {
               title="Sharpe ratio"
               value={sharpeValue}
               subtitle={
-                resolvedAccount === "combined"
+                displayAccount === "combined"
                   ? "Weighted blended (ann.)"
-                  : resolvedAccount === "atlas"
+                  : displayAccount === "atlas"
                   ? "As reported · Ann."
                   : "-"
               }
@@ -468,20 +532,20 @@ const Index = () => {
           </div>
         </section>
 
-        {resolvedAccount !== "combined" && (
+        {displayAccount !== "combined" && (
           <section>
             <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-foreground">
               <LineChart className="h-5 w-5 text-primary" />
               Performance analysis
             </h2>
             <div className="space-y-6">
-              {resolvedAccount === "equiti" && (
+              {displayAccount === "equiti" && (
                 <>
                   <PerformanceChart period={effectivePeriod} />
                   <ROIChart period={effectivePeriod} />
                 </>
               )}
-              {resolvedAccount === "atlas" && (
+              {displayAccount === "atlas" && (
                 <>
                   <PerformanceChart period={effectivePeriod} account="atlas" />
                   <ROIChart period={effectivePeriod} account="atlas" />
@@ -494,9 +558,9 @@ const Index = () => {
         <section>
           <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold text-foreground">
             <CalendarDays className="h-5 w-5 text-primary" />
-            {resolvedAccount === "combined"
+            {displayAccount === "combined"
               ? "Combined P&L breakdown"
-              : resolvedAccount === "atlas"
+              : displayAccount === "atlas"
               ? "Atlas P&L breakdown"
               : effectivePeriod === "Q2"
               ? "Q2 P&L breakdown"
@@ -504,7 +568,7 @@ const Index = () => {
               ? "Q1 P&L breakdown"
               : "Quarterly & monthly P&L breakdown"}
           </h2>
-          <MonthlyPnLChart period={effectivePeriod} account={resolvedAccount} />
+          <MonthlyPnLChart period={effectivePeriod} account={displayAccount} />
         </section>
 
         <section>
@@ -513,18 +577,18 @@ const Index = () => {
             Trade metrics
           </h2>
           <div className="space-y-6">
-            <TradeDistribution period={effectivePeriod} account={resolvedAccount} />
-            <TradeStatsCard period={effectivePeriod} account={resolvedAccount} />
+            <TradeDistribution period={effectivePeriod} account={displayAccount} />
+            <TradeStatsCard period={effectivePeriod} account={displayAccount} />
           </div>
         </section>
 
-        {resolvedAccount !== "atlas" && (
+        {displayAccount !== "atlas" && (
           <section>
-            <RiskMetricsGauge period={effectivePeriod} account={resolvedAccount} />
+            <RiskMetricsGauge period={effectivePeriod} account={displayAccount} />
           </section>
         )}
 
-        {resolvedAccount === "atlas" && (
+        {displayAccount === "atlas" && (
           <section>
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
               <MetricCard
@@ -553,12 +617,9 @@ const Index = () => {
           </section>
         )}
 
-        {resolvedAccount !== "atlas" && (
+        {displayAccount !== "atlas" && (
           <section>
-            <BenchmarkComparison
-              period={effectivePeriod}
-              account={resolvedAccount}
-            />
+            <BenchmarkComparison period={effectivePeriod} account={displayAccount} />
           </section>
         )}
 
@@ -639,9 +700,9 @@ const Index = () => {
               title="Total trades"
               value={displayStats.totalTrades}
               subtitle={
-                resolvedAccount === "combined"
+                displayAccount === "combined"
                   ? "Equiti 26 + Atlas 10"
-                  : resolvedAccount === "atlas"
+                  : displayAccount === "atlas"
                   ? "3 Mar – 17 Apr 2026"
                   : quarterContext
               }
@@ -653,22 +714,19 @@ const Index = () => {
         </section>
 
         <section>
-          <InsightsTips period={effectivePeriod} account={resolvedAccount} />
+          <InsightsTips period={effectivePeriod} account={displayAccount} />
         </section>
 
         <section>
-          <TradeHistory period={effectivePeriod} account={resolvedAccount} />
+          <TradeHistory period={effectivePeriod} account={displayAccount} />
         </section>
       </main>
 
       <footer className="mt-16 border-t border-border py-8">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>
-            © {new Date().getFullYear()} Blue Marvel Capital. All rights reserved.
-          </p>
+          <p>© {new Date().getFullYear()} Blue Marvel Capital. All rights reserved.</p>
           <p className="mt-1">
-            Equiti #3591662 · Atlas Prime #6117251 · Combined AUM $31,693.27 ·
-            Data as of 17 Apr 2026
+            Equiti #3591662 · Atlas Prime #6117251 · Combined AUM $31,693.27 · Data as of 17 Apr 2026
           </p>
         </div>
       </footer>
